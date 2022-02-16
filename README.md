@@ -1,24 +1,22 @@
 ## Stellarator Multi-Objective Optimization
 
-### Optimization questions and problems
-- how should we deal with simulation failures?
-- What algorithm should we use to solve the problem
-- should we treat all QS surface objectives separately?
-- how should we leverage parallelism?
-
 ### ToDO
-- Talk to Matt about 
-  - turning off VMEC output.
-  - vmec discretization.
-  - built in finite difference for QS and aspect.
-  - parallelism: How can we concurrently evaluate the objective?
-  - sim failure feasible region ansatz.
-- time evaluations and finite difference.
-- select parallelism.
-- make 1d plots to show finite difference fidelity, 
-  multi-modality, and simulation failures
-- build data-based bound constraints.
-- rescale the space according to the bounds.
+- Untested features and problems
+  - finite difference feature
+  - vmec resolution parameters
+  - Matt's QS test
+  - Concurrent evaluation test
+- Exploratory Analysis
+  - Switch to SurfaceRZPseudoSpectral coordinates
+  - time evaluations and finite difference.
+  - determine smart use of parallel resources (concurrent vs joint evals)
+  - make 1d plots to show finite difference fidelity, 
+    multi-modality, and simulation failures
+  - Select VMEC discretization based on fidelity
+  - make 2d slices of feasible region for SIMSOPT meeting.
+- Constraints
+  - build data-based bound constraints.
+  - rescale the space according to the bounds.
 - choose a method of solving the unrelaxable bound constrained MOO problem.
   - MOO solvers
     - NSGA-II
