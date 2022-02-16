@@ -13,7 +13,7 @@ class QHProb1():
   def __init__(self,vmec_input="input.nfp4_QH_warm_start",n_partitions=1,max_mode=2):
     # load vmec and mpi
     mpi = MpiPartition(n_partitions)
-    vmec = Vmec(vmec_input, mpi=mpi)
+    vmec = Vmec(vmec_input, mpi=mpi,keep_all_files=False)
 
     # define parameters
     surf = vmec.boundary
