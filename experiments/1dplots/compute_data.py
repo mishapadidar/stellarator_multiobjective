@@ -14,13 +14,18 @@ dim_F = prob.dim_F
 
 # discretization parameters
 n_directions = dim_x
-n_points_per = 10
+n_points_per = 200 # total points per direction
 
 # make the discretization
-max_pert = 0.1
+max_pert = 0.5
 ub = max_pert
 lb = -max_pert
-T = np.linspace(lb,ub,n_points_per)
+T1 = np.linspace(lb,ub,int(n_points_per/2))
+min_log,max_log = -4,-1
+T2 = np.logspace(min_log,max_log,int(n_points_per/4))
+T2 = np.hstack((-T2,T2))
+T = np.sort(np.unique(np.hstack((T1,T2))))
+
 
 # use an orthogonal frame
 Q = np.eye(dim_x)
