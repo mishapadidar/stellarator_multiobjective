@@ -6,7 +6,7 @@ import pickle
 
 # load the problem
 vmec_input = "../../problem/input.nfp4_QH_warm_start"
-n_partitions = 1
+n_partitions = 2
 prob = qh_prob1.QHProb1(vmec_input,n_partitions)
 x0 = prob.x0
 dim_x = prob.dim_x
