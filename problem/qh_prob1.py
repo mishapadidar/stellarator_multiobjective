@@ -10,7 +10,7 @@ class QHProb1():
     F = [(QS - QS_target)**2,(aspect-aspect_target)**2]
   """
     
-  def __init__(self,vmec_input="input.nfp4_QH_warm_start",n_partitions,max_mode=2):
+  def __init__(self,vmec_input="input.nfp4_QH_warm_start",n_partitions=1,max_mode=2):
     # load vmec and mpi
     mpi = MpiPartition(n_partitions)
     vmec = Vmec(vmec_input, mpi=mpi)
@@ -23,9 +23,13 @@ class QHProb1():
                      nmin=-max_mode, nmax=max_mode, fixed=False)
     surf.fix("rc(0,0)") # fix the Major radius
 
-    # attributes
+    # variables
     self.surf = surf # our variables
-    self.dim = len(surf.x) # dimension
+    self.x0 = self.surf.x # nominal starting point
+    self.dim_x = len(surf.x) # dimension
+
+    # objectives
+    self.dim_F = 2
     self.QS = QuasisymmetryRatioResidual(vmec,
                                 np.arange(0, 1.01, 0.1),  # Radii to target
                                 helicity_m=1, helicity_n=-1)  # (M, N) you want in |B|
@@ -33,6 +37,14 @@ class QHProb1():
     self.aspect_target = 7.0
 
   def eval(self,y):
+    """
+    Evaluate the objective vector.
+    y: Fourier coefficients of boundary
+    y: array of size (self.dim_x,)
+
+    return: objectives [QS objective, aspect objective]
+    return: array of size (self.dim_F,)
+    """
     # update the surface
     self.surf.x = np.copy(y)
     # evaluate the objectives
