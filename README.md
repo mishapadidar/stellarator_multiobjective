@@ -1,4 +1,4 @@
-## Stellarator Multi-Objective Optimization
+## Multi-Objective Optimization of Stellarator Plasma Boundaries
 
 ### ToDO
 - Untested features and problems
