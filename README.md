@@ -9,7 +9,10 @@
 ### ToDO
 - Talk to Matt about 
   - turning off VMEC output.
+  - vmec discretization.
   - built in finite difference for QS and aspect.
+  - parallelism: How can we concurrently evaluate the objective?
+  - sim failure feasible region ansatz.
 - time evaluations and finite difference.
 - select parallelism.
 - make 1d plots to show finite difference fidelity, 
