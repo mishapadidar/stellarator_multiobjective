@@ -56,9 +56,11 @@
      > Final Obj:  0.0034076812956755353
      > Final Total QS:  0.0034056233511294337
   - [x] Performing Timing Test
-       |           |  Number of Nodes        |
-       | ----------| ------------------------|
-       | Dimension | 1 | 2 | 4 | 8 | 10 | 12 |
-       | ----------|---|---|---|---|----|----|
-       |     8     |   |   |   |   |    |    |
-       |    24     |   |   |   |   |    |    |
+     > Using more mpi resources while keeping the number of worker groups fixed does not speed up compuation.
+     > In fact I found that it was fastest to use a single mpi rank per worker group. 
+     > Thus it is best to use only 1 rank per MPIPartition, and leverage concurrent computations instead.
+     >
+     > At max_mode = 1 (8 dofs) the computational time is 1.5sec. 
+     > At max_mode = 2 (24 dofs) the computational time is 3.3sec. 
+     > At max_mode = 3 (48 dofs) the computational time is 4.1sec. 
+
