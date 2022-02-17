@@ -18,12 +18,15 @@ def divide_work(n,k):
 
   # storage
   intervals = []
+  counts = []
 
   # corner case
   if n <= k:
     intervals = [[ii] for ii in range(n)]
+    counts = [1 for ii in range(n)]
     for ii in range(k-n):
       intervals.append([])
+      counts.append(0)
   else:
     base     = n//k  
     leftover = n%k
@@ -35,11 +38,12 @@ def divide_work(n,k):
         size = base
       end   = start + size   
       # save the interval
+      counts.append(size)
       intervals.append(range(start,end))
       # reset for next iteration
       start = end
 
-  return intervals  
+  return intervals,counts
 
 if __name__ == '__main__':
 
@@ -50,6 +54,5 @@ if __name__ == '__main__':
   print(divide_work(9,3))
   print(divide_work(4,2))
   print(divide_work(21,7))
-
 
 
