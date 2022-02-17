@@ -69,6 +69,44 @@ class QHProb1():
       obj2 = np.inf
     return np.array([obj1,obj2])
 
+  def evalp(self,Y):
+    """
+    Evaluate the objective vector at many points by distributing
+    the resources over worker groups.
+
+    Dont use this function if you only have one worker group.
+
+    This function expects all workers groups to contribute, so 
+    all worker groups must evaluate this function on the same
+    set of points Y.
+
+    Y: array of input variables describing surface
+    Y: array of size (n_points, self.dim_x). n_points must be a 
+       multiple of n_partitions.
+
+    return: array of objectives [QS objective, aspect objective]
+    return: array of size (n_points, self.dim_F)
+    """
+    n_points = np.shape(Y)[0]
+
+    assert (self.n_partitions>1), "You need at least 2 partitions to use this function"
+    assert (n_points%self.n_partitions == 0),\
+       "MPI requires the number of groups to divide n_points"
+
+    # divide the evals across groups
+    n_group_evals = int(n_points/self.n_partitions)
+    idx = range(self.mpi.group*n_group_evals,(self.mpi.group+1)*n_group_evals)
+
+    # do the evals
+    f   = np.array([self.eval(y) for y in Y[idx]])
+
+    # leaders gather up all evals
+    F = np.zeros((n_points, self.dim_F)) 
+    self.mpi.comm_leaders.Allgather(f,F)
+    # broadcast internally within group
+    self.mpi.comm_groups.Bcast(F,root=0)
+    return np.copy(F)
+
   def jac(self,y,h=1e-7,method='forward'):
     """
     Evaluate the objective jacobian. Use this
@@ -120,6 +158,7 @@ class QHProb1():
     return: array of size (self.dim_F,self.dim_x)
     """
     assert method in ['forward','central']
+    assert (self.n_partitions>1), "You need at least 2 partitions to use this function"
     assert (self.dim_x%self.n_partitions == 0),\
        "MPI requires the number of groups to divide dim_x"
 
@@ -147,7 +186,7 @@ if __name__=="__main__":
 
   # test 1:
   # evaluate obj and jac with one partition
-  test_1 = True
+  test_1 = False
   if test_1 == True:
     prob = QHProb1(n_partitions=1,max_mode=1)
     x0 = prob.x0
@@ -164,15 +203,19 @@ if __name__=="__main__":
   
   # test 2:
   # evaluate obj and jac with multiple partition
-  test_2 = False
+  test_2 = True
   if test_2 == True:
-    prob = QHProb1(n_partitions=3,max_mode=2)
+    prob = QHProb1(n_partitions=4,max_mode=2)
     x0 = prob.x0
+    n_evals = 12
+    Y = x0 + 1e-5*np.random.randn(n_evals,prob.dim_x)
     import time
     t0 = time.time()
-    print(prob.eval(x0))
+    print(prob.evalp(Y))
     print("\n\n\n")
     print('eval time',time.time() - t0)
+    quit()
+
     t0 = time.time()
     jac = prob.jacp(x0,method='forward',h=1e-7)
     print(prob.mpi.group,jac)
