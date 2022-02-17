@@ -41,7 +41,9 @@
     - [x] built in finite difference for QS and aspect.
     - [x] parallelism: How can we concurrently evaluate the objective?
     - [x] sim failure feasible region ansatz.
-  - [x] Set up vmec resolution parameters in the QH prob.
+  - [x] Set up vmec resolution parameters in the QH prob. 
+     > Denote as `vmec.indata.mpol` and `vmec.indata.ntor`. Keep this higher than 
+       the max Fourier modes of the boundary.
   - [x] unit test finite difference feature.
   - [x] Write a parallel jacobian computation using working groups.
   - [x] Run Matt's QS test.
