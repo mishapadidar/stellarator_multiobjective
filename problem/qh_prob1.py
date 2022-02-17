@@ -2,7 +2,6 @@ import numpy as np
 from simsopt.util.mpi import MpiPartition
 from simsopt.mhd.vmec import Vmec
 from simsopt.mhd.vmec_diagnostics import QuasisymmetryRatioResidual
-from simsopt._core.finite_difference import MPIFiniteDifference
 
 class QHProb1():
 
@@ -35,7 +34,7 @@ class QHProb1():
 
     # objectives
     self.dim_F = 2
-    self.QS = QuasisymmetryRatioResidual(vmec,
+    self.QS = QuasisymmetryRatioResidual(self.vmec,
                                 np.arange(0, 1.01, 0.1),  # Radii to target
                                 helicity_m=1, helicity_n=-1)  # (M, N) you want in |B|
     self.qs_target = 0.0
@@ -61,37 +60,44 @@ class QHProb1():
       obj2 = np.inf
     return np.array([obj1,obj2])
 
-  def jac(self,y):
+  def jac(self,y,h=1e-7,method='forward'):
     """
-    WARNING: Method is UNTESTED
     Evaluate the objective jacobian.
     y: input variables describing surface
     y: array of size (self.dim_x,)
+    h: step size
+    h: float
+    method: 'forward' or 'central'
+    method: string
 
-    return: objectives [QS objective, aspect objective]
-    return: array of size (self.dim_F,)
+    return: jacobian of self.eval
+    return: array of size (self.dim_F,self.dim_x)
     """
-    # update the surface
-    self.surf.x = np.copy(y)
-    # evaluate the objectives
-    try: 
-      with MPIFiniteDifference(self.QS.total, self.mpi, diff_method="forward", abs_step=1e-7) as fd:
-        if self.mpi.proc0_world:
-            grad_qs = fd.jac()
-      with MPIFiniteDifference(self.vmec.aspect, self.mpi, diff_method="forward", abs_step=1e-7) as fd:
-        if self.mpi.proc0_world:
-            grad_aspect = fd.jac()
-      jac1 = 2*(self.QS.total() - self.qs_target)*grad_qs
-      jac2 = 2*(self.vmec.aspect() - self.aspect_target)*grad_aspect
-    except: # catch failures
-      jac1 = np.inf*np.ones(self.dim_x)
-      jac2 = np.inf*np.ones(self.dim_x)
-    return np.array([jac1,jac2])
+    assert method in ['forward','central']
+
+    h2   = h/2.0
+    Ep   = y + h2*np.eye(self.dim_x)
+    Fp   = np.array([self.eval(e) for e in Ep])
+    if method == 'forward':
+      jac = (Fp - self.eval(y))/(h2)
+    elif method == 'central': # central difference
+      Em   = y - h2*np.eye(self.dim_x)
+      Fm   = np.array([self.eval(e) for e in Em])
+      jac = (Fp - Fm)/(h)
+    return np.copy(jac.T)
 
 if __name__=="__main__":
   # define a multiobjective problem
-  prob = QHProb1()
+  prob = QHProb1(max_mode=1)
   x0 = prob.x0
+  import time
+  t0 = time.time()
   print(prob.eval(x0))
-  print(prob.jac(x0))
+  print("\n\n\n")
+  print('eval time',time.time() - t0)
+
+  t0 = time.time()
+  print(prob.jac(x0,method='central',h=1e-7))
+  print("\n\n\n")
+  print('jac time',time.time() - t0)
   
