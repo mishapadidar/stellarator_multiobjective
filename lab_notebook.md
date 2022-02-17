@@ -44,6 +44,13 @@
   - [x] Set up vmec resolution parameters in the QH prob. 
      > Denote as `vmec.indata.mpol` and `vmec.indata.ntor`. Keep this higher than 
        the max Fourier modes of the boundary.
-  - [x] unit test finite difference feature.
+  - [x] write a finite difference jacobian.
+  - [x] test finite difference jacobian.
   - [x] Write a parallel jacobian computation using working groups.
   - [x] Run Matt's QS test.
+     > Seemed succesful. Here is the print out:
+     > `xtol` termination condition is satisfied. 
+     > Function evaluations 30, initial cost 1.5177e-01, final cost 1.7038e-03, first-order optimality 6.35e+01.
+     > Time to solve:  303.22242522239685
+     > Final Obj:  0.0034076812956755353
+     > Final Total QS:  0.0034056233511294337
