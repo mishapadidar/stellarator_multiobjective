@@ -1,8 +1,6 @@
 ## Multi-Objective Optimization of Stellarator Plasma Boundaries
 
 ### ToDO
-- Upgrade
-  - Leverage MPIPartition in function evaluation and jacobian computation
 - Untested features and problems
   - Matt's QS test
   - Concurrent evaluation test
