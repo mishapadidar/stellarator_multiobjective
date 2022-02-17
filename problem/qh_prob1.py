@@ -11,7 +11,11 @@ class QHProb1():
   """
     
   def __init__(self,vmec_input="input.nfp4_QH_warm_start",n_partitions=1,max_mode=2):
-    assert n_partitions=1, "Dont waste resources: we currently only use 1 partition in eval and jac"
+    """
+    n_partitions: number of MPI partitions to create. Only use more than 1 if you 
+        intend to do concurrent evaluations of the objective.
+    max_mode: maximum Fourier mode for the description of the input variables.
+    """
 
     # load vmec and mpi
     self.n_partitions = n_partitions
