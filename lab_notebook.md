@@ -1,8 +1,9 @@
 ## Multi-Objective Optimization of Stellarator Plasma Boundaries
 
 ### ToDO
-- Untested features and problems
-  - Concurrent evaluation test
+- Upgrade concurrent evals and jacobian in qh\_prob1.py so that arbitrary number of
+  points can be evaluated.
+- Concurrent evaluation test
 - Exploratory Analysis
   - Switch to SurfaceRZPseudoSpectral coordinates
   - time evaluations and finite difference.
@@ -54,3 +55,10 @@
      > Time to solve:  303.22242522239685
      > Final Obj:  0.0034076812956755353
      > Final Total QS:  0.0034056233511294337
+  - [x] Performing Timing Test
+       |           |  Number of Nodes        |
+       | ----------| ------------------------|
+       | Dimension | 1 | 2 | 4 | 8 | 10 | 12 |
+       | ----------|---|---|---|---|----|----|
+       |     8     |   |   |   |   |    |    |
+       |    24     |   |   |   |   |    |    |
