@@ -3,11 +3,8 @@
 ### ToDO
 - Upgrade concurrent evals and jacobian in qh\_prob1.py so that arbitrary number of
   points can be evaluated.
-- Concurrent evaluation test
 - Exploratory Analysis
   - Switch to SurfaceRZPseudoSpectral coordinates
-  - time evaluations and finite difference.
-  - determine smart use of parallel resources (concurrent vs joint evals)
   - make 1d plots to show finite difference fidelity, 
     multi-modality, and simulation failures
   - Select VMEC discretization based on fidelity
