@@ -35,13 +35,13 @@
 
 
 ### Completed
-  [x] Talk to Matt about:
-    [x] turning off VMEC output.
-    [x] vmec discretization.
-    [x] built in finite difference for QS and aspect.
-    [x] parallelism: How can we concurrently evaluate the objective?
-    [x] sim failure feasible region ansatz.
-  [x] Set up vmec resolution parameters in the QH prob.
-  [x] unit test finite difference feature.
-  [x] Write a parallel jacobian computation using working groups.
-  [x] Run Matt's QS test.
+  - [x] Talk to Matt about:
+    - [x] turning off VMEC output.
+    - [x] vmec discretization.
+    - [x] built in finite difference for QS and aspect.
+    - [x] parallelism: How can we concurrently evaluate the objective?
+    - [x] sim failure feasible region ansatz.
+  - [x] Set up vmec resolution parameters in the QH prob.
+  - [x] unit test finite difference feature.
+  - [x] Write a parallel jacobian computation using working groups.
+  - [x] Run Matt's QS test.
