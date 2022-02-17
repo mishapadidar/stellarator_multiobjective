@@ -1,10 +1,11 @@
 ## Multi-Objective Optimization of Stellarator Plasma Boundaries
 
 ### ToDO
+- Switch to SurfaceRZPseudoSpectral coordinates
+  > `simsopt` vesion `0.7.0` does not have this feature. Need to upgrade to get access.
 - Upgrade concurrent evals and jacobian in qh\_prob1.py so that arbitrary number of
   points can be evaluated.
 - Exploratory Analysis
-  - Switch to SurfaceRZPseudoSpectral coordinates
   - make 1d plots to show finite difference fidelity, 
     multi-modality, and simulation failures
   - Select VMEC discretization based on fidelity
