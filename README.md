@@ -17,15 +17,18 @@
 - Constraints
   - build data-based bound constraints.
   - rescale the space according to the bounds.
+  - build three approximations to the VMEC feasible region
+    - safe approximation, outer approximation, best approximation.
+    - Have Matt take a look at points which evaluate but are 
+      outside of the safe approximation
 - choose a method of solving the unrelaxable bound constrained MOO problem.
-  - MOO solvers
-    - NSGA-II
-  - DFO:
-    - POUNDERS on linearized sum of squares
-    - Nelder-Mead/COBYLA/MADS on Tchebycheff/Lp problems
-    - ParEGO etc...
-  - Derivative Based:
-    - (Sub)-GD (BFGS) with fault tolerant linesearch on scalarization.
+  - Bi-objective MOO
+    - With Bi-objective we can use a discrete set of
+      reference points within a Lp or Tchebycheff approach.
+      First need to (globally) minimize each objective to bound the pareto front.
+      Use multistart (fault tolerant)GD or direct search.
+  - DFO MOO solvers
+    - NSGA-II, DMS, MultiMADS
 - optimize and save all evaluation data.
 - plot the pareto front.
 - locally expand pareto front around non-dominated points.
