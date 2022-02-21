@@ -170,29 +170,22 @@ class QHProb1():
     return: array of size (self.dim_F,self.dim_x)
     """
     assert method in ['forward','central']
-    assert (self.n_partitions>1), "You need at least 2 partitions to use this function"
-    assert (self.dim_x%self.n_partitions == 0),\
-       "MPI requires the number of groups to divide dim_x"
 
-    # divide the evals across groups
-    n_group_evals = int(self.dim_x/self.n_partitions)
-    idx = range(self.mpi.group*n_group_evals,(self.mpi.group+1)*n_group_evals)
+    # special case
+    if self.n_partitions == 1:
+      return self.jac(y,h,method)
 
     h2   = h/2.0
     Ep   = y + h2*np.eye(self.dim_x)
-    Fp   = np.array([self.eval(e) for e in Ep[idx]])
+    Fp   = self.evalp(Ep)
     if method == 'forward':
       jac = (Fp - self.eval(y))/(h2)
     elif method == 'central': # central difference
-      Em   = y - h2*np.eye(self.dim_x)
-      Fm   = np.array([self.eval(e) for e in Em[idx]])
+      Em  = y - h2*np.eye(self.dim_x)
+      Fm  = self.evalp(Em)
       jac = (Fp - Fm)/(h)
-    # leaders gather up all pieces of jacobian
-    jacg = np.zeros((self.dim_x,self.dim_F)) # transpose jacobian
-    self.mpi.comm_leaders.Allgather(jac,jacg)
-    # broadcast internally within group
-    self.mpi.comm_groups.Bcast(jacg,root=0)
-    return np.copy(jacg.T)
+    
+    return np.copy(jac.T)
 
 if __name__=="__main__":
 
@@ -217,7 +210,7 @@ if __name__=="__main__":
   # evaluate obj and jac with multiple partition
   test_2 = True
   if test_2 == True:
-    prob = QHProb1(n_partitions=3,max_mode=2)
+    prob = QHProb1(n_partitions=8,max_mode=2)
     x0 = prob.x0
     n_evals = 5
     Y = x0 + 1e-5*np.random.randn(n_evals,prob.dim_x)
@@ -229,6 +222,7 @@ if __name__=="__main__":
 
     t0 = time.time()
     jac = prob.jacp(x0,method='forward',h=1e-7)
-    print(prob.mpi.group,jac)
     print("\n\n\n")
     print('jac time',time.time() - t0)
+    print(prob.mpi.group,jac)
+
