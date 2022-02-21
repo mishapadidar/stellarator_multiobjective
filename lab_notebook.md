@@ -4,12 +4,10 @@
 - Switch to SurfaceRZPseudoSpectral coordinates
   > `simsopt` vesion `0.7.0` does not have this feature. Need to upgrade to get access.
 - VMEC evaluation print statements take approximately 0.25sec - 0.35sec
+- Discuss the 1D plots.
 
 ### ToDO
 - Exploratory Analysis
-  - make 1d plots to show finite difference fidelity, 
-    multi-modality, and simulation failures
-  - Select VMEC discretization based on fidelity
   - make 2d slices of feasible region for SIMSOPT meeting.
 - Constraints
   - build data-based bound constraints.
@@ -66,4 +64,11 @@
      > VMEC print statements take 0.25sec - 0.35sec.
   - [x] Upgrade concurrent evals and jacobian in qh\_prob1.py so that arbitrary number of
         points can be evaluated.
+  - [x] Make 1d-plots to show finite difference fidelity, multi-modality, and simulation failures.
+       > Plot shows no noise even up to 1e-9 step size. This shows pretty amazing precision in VMEC solves at the
+       > current resolution (by default set to 5 = 2dofs + 3).
+       > Functions look like convex quadratics around qh_prob1's x0.
+       > Simulation failures may not be connected in space. Some directions fail, then stop failing, then fail again 
+       > along a 1d line segment. This is most likely due to non-bound constraints being projected onto the 1d slices.
+       > Lastly, bounds for each variable differ greatly.
 
