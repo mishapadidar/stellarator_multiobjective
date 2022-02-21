@@ -1,10 +1,11 @@
 ## Multi-Objective Optimization of Stellarator Plasma Boundaries
 
-### ToDO
+### Discuss
 - Switch to SurfaceRZPseudoSpectral coordinates
   > `simsopt` vesion `0.7.0` does not have this feature. Need to upgrade to get access.
-- Upgrade concurrent evals and jacobian in qh\_prob1.py so that arbitrary number of
-  points can be evaluated.
+- VMEC evaluation print statements take approximately 0.25sec - 0.35sec
+
+### ToDO
 - Exploratory Analysis
   - make 1d plots to show finite difference fidelity, 
     multi-modality, and simulation failures
@@ -61,4 +62,8 @@
      > At max_mode = 1 (8 dofs) the computational time is 1.5sec. 
      > At max_mode = 2 (24 dofs) the computational time is 3.3sec. 
      > At max_mode = 3 (48 dofs) the computational time is 4.1sec. 
+     >
+     > VMEC print statements take 0.25sec - 0.35sec.
+  - [x] Upgrade concurrent evals and jacobian in qh\_prob1.py so that arbitrary number of
+        points can be evaluated.
 
