@@ -10,6 +10,7 @@
 - Exploratory Analysis
   - make 2d slices of feasible region for SIMSOPT meeting.
 - Constraints
+  - write a script to sample the feasible region.
   - build data-based bound constraints.
   - rescale the space according to the bounds.
   - build three approximations to the VMEC feasible region
@@ -69,6 +70,6 @@
        > current resolution (by default set to 5 = 2dofs + 3).
        > Functions look like convex quadratics around qh_prob1's x0.
        > Simulation failures may not be connected in space. Some directions fail, then stop failing, then fail again 
-       > along a 1d line segment. This is most likely due to non-bound constraints being projected onto the 1d slices.
+       > along a 1d line segment, which implies non-convexity of the feasible region.
        > Lastly, bounds for each variable differ greatly.
 
