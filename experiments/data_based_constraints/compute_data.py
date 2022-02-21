@@ -96,12 +96,17 @@ for ii in range(max_iter):
   CX = np.copy(np.vstack((CX,CY)))
   # correct scaling
   idx = CX.flatten().astype(int)
-  lb = np.min(X[idx],axis=0)
-  ub = np.max(X[idx],axis=0)
+  lb = np.copy(np.min(X[idx],axis=0))
+  ub = np.copy(np.max(X[idx],axis=0))
   # enlarge
   diff = (ub-lb)/4
   ub = np.copy(ub + growth_factor*diff)
   lb = np.copy(lb - growth_factor*diff)
+
+# compute tightest bound constraints
+idx = CX.flatten().astype(int)
+lb = np.min(X[idx],axis=0)
+ub = np.max(X[idx],axis=0)
   
 # dump a pickle file
 outfile = f"samples_{seed}.pickle"
