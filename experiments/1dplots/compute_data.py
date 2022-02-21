@@ -1,9 +1,9 @@
 import numpy as np
 import sys
 sys.path.append("../../problem")
+sys.path.append("../../utils")
 import qh_prob1
 import pickle
-import sys
 
 
 # load the problem
@@ -16,7 +16,7 @@ np.random.seed(0) # match the seeds
 
 # discretization parameters
 n_directions = dim_x
-n_points_per = 200 # total points per direction
+n_points_per = 400 # total points per direction
 
 # make the discretization
 max_pert = 0.5
@@ -24,7 +24,7 @@ ub = max_pert
 lb = -max_pert
 n1 = int(n_points_per/2)
 T1 = np.linspace(lb,ub,n1)
-min_log,max_log = -8,-3
+min_log,max_log = -9,-3
 n2 = int((n_points_per - n1)/2)
 T2 = np.logspace(min_log,max_log,n2)
 T2 = np.hstack((-T2,T2))
