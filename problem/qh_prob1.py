@@ -2,6 +2,10 @@ import numpy as np
 from simsopt.util.mpi import MpiPartition
 from simsopt.mhd.vmec import Vmec
 from simsopt.mhd.vmec_diagnostics import QuasisymmetryRatioResidual
+from mpi4py import MPI
+import sys
+sys.path.append("../utils")
+from divide_work import divide_work
 
 
 class QHProb1():
@@ -11,16 +15,19 @@ class QHProb1():
     F = [(QS - QS_target)**2,(aspect-aspect_target)**2]
   """
     
-  def __init__(self,vmec_input="input.nfp4_QH_warm_start",n_partitions=1,max_mode=2):
+  def __init__(self,vmec_input="input.nfp4_QH_warm_start",n_partitions=0,max_mode=2):
     """
     n_partitions: number of MPI partitions to create. 
         Using multiple partitions is useful if you are implementing concurrent function
         evaluations in your driver script, or if you would like to distribute
         finite difference computations over multiple groups.
+        Defaults to MPI.size()
     max_mode: maximum Fourier mode for the description of the input variables.
     """
 
     # load vmec and mpi
+    if n_partitions == 0:
+      n_partitions = MPI.COMM_WORLD.Get_size()
     self.n_partitions = n_partitions
     self.mpi = MpiPartition(n_partitions)
     self.vmec = Vmec(vmec_input, mpi=self.mpi,keep_all_files=False)
@@ -74,8 +81,6 @@ class QHProb1():
     Evaluate the objective vector at many points by distributing
     the resources over worker groups.
 
-    Dont use this function if you only have one worker group.
-
     This function expects all workers groups to contribute, so 
     all worker groups must evaluate this function on the same
     set of points Y.
@@ -89,22 +94,29 @@ class QHProb1():
     """
     n_points = np.shape(Y)[0]
 
-    assert (self.n_partitions>1), "You need at least 2 partitions to use this function"
-    assert (n_points%self.n_partitions == 0),\
-       "MPI requires the number of groups to divide n_points"
+    # special case for 1 partition
+    if self.n_partitions ==1:
+      return np.array([self.eval(y) for y in Y])
 
     # divide the evals across groups
-    n_group_evals = int(n_points/self.n_partitions)
-    idx = range(self.mpi.group*n_group_evals,(self.mpi.group+1)*n_group_evals)
+    idxs,counts = divide_work(n_points,self.n_partitions)
+    idx = idxs[self.mpi.group]
 
     # do the evals
-    f   = np.array([self.eval(y) for y in Y[idx]])
+    f   = np.array([self.eval(y) for y in Y[idx]]).flatten()
 
-    # leaders gather up all evals
-    F = np.zeros((n_points, self.dim_F)) 
-    self.mpi.comm_leaders.Allgather(f,F)
+    # head leader gathers all evals
+    F = np.zeros(n_points*self.dim_F)
+    counts = self.dim_F*np.array(counts).astype(int)
+    self.mpi.comm_leaders.Gatherv(f,(F,counts),root=0)
+    # broadcast to leaders
+    self.mpi.comm_leaders.Bcast(F,root=0)
     # broadcast internally within group
     self.mpi.comm_groups.Bcast(F,root=0)
+
+    # reshape to 2D-array
+    F = np.reshape(F,(-1,self.dim_F))
+    
     return np.copy(F)
 
   def jac(self,y,h=1e-7,method='forward'):
@@ -205,16 +217,15 @@ if __name__=="__main__":
   # evaluate obj and jac with multiple partition
   test_2 = True
   if test_2 == True:
-    prob = QHProb1(n_partitions=4,max_mode=2)
+    prob = QHProb1(n_partitions=3,max_mode=2)
     x0 = prob.x0
-    n_evals = 12
+    n_evals = 5
     Y = x0 + 1e-5*np.random.randn(n_evals,prob.dim_x)
     import time
     t0 = time.time()
     print(prob.evalp(Y))
     print("\n\n\n")
     print('eval time',time.time() - t0)
-    quit()
 
     t0 = time.time()
     jac = prob.jacp(x0,method='forward',h=1e-7)
