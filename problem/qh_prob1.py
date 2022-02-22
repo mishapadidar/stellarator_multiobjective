@@ -56,6 +56,17 @@ class QHProb1():
     self.qs_target = 0.0
     self.aspect_target = 7.0
 
+  def sync_seeds(self):
+    """
+    Sync the np.random.seed of the various worker groups.
+    The seed is a random number <1e6.
+    """
+    seed = np.zeros(1)
+    if self.mpi.proc0_world:
+      seed = np.random.randint(int(1e6))*np.ones(1)
+    self.mpi.comm_world.Bcast(seed,root=0)
+    np.random.seed(int(seed[0]))
+
   def eval(self,y):
     """
     Evaluate the objective vector.
