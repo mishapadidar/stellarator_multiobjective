@@ -18,22 +18,25 @@ np.random.seed(0) # match the seeds
 idx1 = 6
 idx2 = 15
 # number of points per direction (N^2 points total)
-n_points_per = 20
+n_points_per = 50
 
 # make the discretization
-max_pert = 0.05
-ub = max_pert
-lb = -max_pert
-T = np.linspace(lb,ub,n_points_per)
+#max_pert = 0.1
+#ub = max_pert*np.ones(2)
+#lb = -max_pert*np.ones(2)
+ub = np.array([0.075,0.075])
+lb = np.array([-0.05,-.1])
+T1 = np.linspace(lb[0],ub[0],n_points_per)
+T2 = np.linspace(lb[1],ub[1],n_points_per)
+# make a grid
+X1,X2 = np.meshgrid(T1,T2)
 
 # get the directions
 e1 = np.eye(dim_x)[idx1]
 e2 = np.eye(dim_x)[idx2]
 
-# make a grid
-X1,X2 = np.meshgrid(T,T)
-X = np.zeros((0,dim_x))
 # make a list of points
+X = np.zeros((0,dim_x))
 for ii in range(n_points_per):
   for jj in range(n_points_per):
     pp = np.zeros_like(x0)
