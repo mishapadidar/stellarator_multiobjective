@@ -66,11 +66,9 @@ max_iter = 2
 n_points_per = 2
 n_points = max_iter*n_points_per
 # growth factor
-# TODO: make growth factor increase over time
-# gf = gf0 + eta*sqrt(kk)
 growth_factor = 5
 # initial box size
-max_pert = 0.001 
+max_pert = 0.01 
 ub = x0 + max_pert
 lb = x0 - max_pert
 
@@ -95,7 +93,7 @@ for ii in range(max_iter):
   FX = np.copy(np.vstack((FX,FY)))
   CX = np.copy(np.vstack((CX,CY)))
   # correct scaling
-  idx = CX.flatten().astype(int)
+  idx = CX.flatten().astype(bool)
   lb = np.copy(np.min(X[idx],axis=0))
   ub = np.copy(np.max(X[idx],axis=0))
   # enlarge
@@ -104,7 +102,7 @@ for ii in range(max_iter):
   lb = np.copy(lb - growth_factor*diff)
 
 # compute tightest bound constraints
-idx = CX.flatten().astype(int)
+idx = CX.flatten().astype(bool)
 lb = np.min(X[idx],axis=0)
 ub = np.max(X[idx],axis=0)
   
