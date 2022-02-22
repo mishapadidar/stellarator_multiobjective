@@ -21,7 +21,7 @@ for ii in range(n_directions):
   plt.plot(T,FX[ii][:,obj_number],linewidth=2,color=colors[ii],label=f'dir {ii}')
 plt.ylabel('function value')
 plt.xlabel('distance from x0')
-plt.xscale('symlog',linthresh=1e-9)
+#plt.xscale('symlog',linthresh=1e-9)
 plt.yscale('log')
 plt.legend()
 plt.show()
