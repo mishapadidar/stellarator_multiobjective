@@ -18,7 +18,7 @@ np.random.seed(0) # match the seeds
 idx1 = 6
 idx2 = 15
 # number of points per direction (N^2 points total)
-n_points_per = 100
+n_points_per = 20
 
 # make the discretization
 max_pert = 0.25
@@ -42,15 +42,15 @@ X = np.zeros((0,dim_x))
 # make a list of points
 for ii in range(n_points_per):
   for jj in range(n_points_per):
-    pp = np.copy(x0)
+    pp = np.zeros_like(x0)
     pp[idx1] = X1[ii,jj]
     pp[idx2] = X2[ii,jj]
+    pp += x0
     X = np.append(X,pp.reshape((1,-1)),axis=0)
 # evaluate the points
 FX = prob.evalp(X)
 # reshape
 FX = FX.T.reshape((dim_F,n_points_per,n_points_per))
-print(FX)
 
 # dump a pickle file
 outfile = f"2dplot_data_{idx1}_{idx2}.pickle"
