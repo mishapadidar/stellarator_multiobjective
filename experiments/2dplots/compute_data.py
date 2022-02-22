@@ -18,7 +18,7 @@ np.random.seed(0) # match the seeds
 idx1 = 6
 idx2 = 15
 # number of points per direction (N^2 points total)
-n_points_per = 50
+n_points_per = 100
 
 # make the discretization
 #max_pert = 0.1
@@ -26,9 +26,9 @@ n_points_per = 50
 #lb = -max_pert*np.ones(2)
 ub = np.array([0.075,0.075])
 lb = np.array([-0.05,-.1])
+# make a grid
 T1 = np.linspace(lb[0],ub[0],n_points_per)
 T2 = np.linspace(lb[1],ub[1],n_points_per)
-# make a grid
 X1,X2 = np.meshgrid(T1,T2)
 
 # get the directions
@@ -59,5 +59,6 @@ outdata['n_points_per'] = n_points_per
 outdata['idx1'] = idx1
 outdata['idx2'] = idx2
 outdata['x0'] = x0
-outdata['T'] = T
+outdata['T1'] = T1
+outdata['T2'] = T2
 pickle.dump(outdata,open(outfile,"wb"))
