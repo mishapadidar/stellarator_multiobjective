@@ -61,21 +61,19 @@ dim_x = prob.dim_x
 dim_F = prob.dim_F
 
 # parameters
-max_iter = 2
+max_iter = 50
 # number of points per iteration
-n_points_per = 2
+n_points_per = 200
 n_points = max_iter*n_points_per
 # growth factor
-growth_factor = 5
+growth_factor = 2
 # initial box size
-max_pert = 0.01 
+max_pert = 0.001 
 ub = x0 + max_pert
 lb = x0 - max_pert
 
 # match the seeds
-# TODO: broadcast seed
-seed = 0
-np.random.seed(seed)
+prob.sync_seeds()
 
 # storage
 X = np.zeros((0,dim_x)) # points
