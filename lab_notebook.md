@@ -90,4 +90,7 @@
        > The safe approximation can be any shape so long as it contains the feasible region. Bound constrained safe
        > approximations are useful for sampling from the feasible region, rescaling input parameters, and bounding 
        > global and multi-objective optimization methods.
+  - [x] SIMSOPT does not seem to run on some of the G2 nodes, specifically some (and perhaps all, though not tested) of 
+        g2-cpu-[06-11,97-98]. We can get around running on these by including the following in the slurm submit script 
+        `SBATCH --exclude=g2-cpu-[06-11,97-98]`
   
