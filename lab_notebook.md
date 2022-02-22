@@ -21,13 +21,20 @@
       First need to (globally) minimize each objective to bound the pareto front.
       Use multistart (fault tolerant)GD or direct search.
   - DFO MOO solvers
-    - NSGA-II, DMS, MultiMADS
-- optimize and save all evaluation data.
-- plot the pareto front.
-- locally expand pareto front around non-dominated points.
-- look at convexity vs non-convexity.
-- choose a few points of interest.
-- Look at sensitivity to surface labels.
+    - NSGA-II, DMS, MultiMADS, ParEGO
+- Solve and analyze QHProb1
+  - Rescale objectives and inputs before optimization!
+  - optimize and save all evaluation data.
+  - plot the pareto front.
+  - look at convexity vs non-convexity.
+  - choose a few points of interest.
+  - Verify pareto optimality of these points.
+  - locally expand pareto front around non-dominated points.
+  - Look at sensitivity to surface labels.
+- Resolve problem for different objectives
+  - QHProb1 with linear or log aspect ratio instead of quadratic.
+  - Choose best aspect ratio objective 
+- Develop and solve the QA problem.
 
 
 ### Completed
