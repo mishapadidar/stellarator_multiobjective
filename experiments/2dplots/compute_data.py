@@ -21,16 +21,10 @@ idx2 = 15
 n_points_per = 20
 
 # make the discretization
-max_pert = 0.25
+max_pert = 0.05
 ub = max_pert
 lb = -max_pert
-n1 = int(n_points_per/2)
-T1 = np.linspace(lb,ub,n1)
-min_log,max_log = -5,-1
-n2 = int((n_points_per - n1)/2)
-T2 = np.logspace(min_log,max_log,n2)
-T2 = np.hstack((-T2,T2))
-T = np.sort(np.unique(np.hstack((T1,T2))))
+T = np.linspace(lb,ub,n_points_per)
 
 # get the directions
 e1 = np.eye(dim_x)[idx1]
