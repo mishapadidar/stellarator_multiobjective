@@ -4,19 +4,16 @@
 - Switch to SurfaceRZPseudoSpectral coordinates
   > `simsopt` vesion `0.7.0` does not have this feature. Need to upgrade to get access.
 - VMEC evaluation print statements take approximately 0.25sec - 0.35sec
-- Discuss the 1D plots.
+- Discuss the 1D plots and 2d plots.
+- How do VMEC resolution parameters effect sim failures?
 
 ### ToDO
-- Exploratory Analysis
-  - make 2d slices of feasible region for SIMSOPT meeting.
+- make non-axis aligned 1d slices of feasible region.
+- make 2d slices of feasible region.
+- look at the effect of the VMEC resolution parameters on simulation failures.
 - Constraints
-  - write a script to sample the feasible region.
   - build data-based bound constraints.
   - rescale the space according to the bounds.
-  - build three approximations to the VMEC feasible region
-    - safe approximation, outer approximation, best approximation.
-    - Have Matt take a look at points which evaluate but are 
-      outside of the safe approximation
 - choose a method of solving the unrelaxable bound constrained MOO problem.
   - Bi-objective MOO
     - With Bi-objective we can use a discrete set of
@@ -72,4 +69,17 @@
        > Simulation failures may not be connected in space. Some directions fail, then stop failing, then fail again 
        > along a 1d line segment, which implies non-convexity of the feasible region.
        > Lastly, bounds for each variable differ greatly.
-
+  - [x] Write a script to sample the feasible region.
+  - [x] Consdier three approximations to the feasible region: safe approximation, outer approximation, best approximation.
+       > safe approximation is useful to optimization methods as it gaurantees to avoids failures. Typically safe approximation
+       > should use a non-convex feasible region approximant, so that it consumes as much of the feasible region as possible. 
+       > The 2d plots show that the safe approximation would be quite small for our problem.
+       >
+       > The best approximation is typically a nonlinear classification methods, such as an SVM. It can be used as a penalty in 
+       > objective functions to push methods away from the boundary and improve the use of the computational budget. Nonlinear,
+       > nonconvex regions, such as the best approximation, are difficult to sample uniformly.
+       >
+       > The safe approximation can be any shape so long as it contains the feasible region. Bound constrained safe
+       > approximations are useful for sampling from the feasible region, rescaling input parameters, and bounding 
+       > global and multi-objective optimization methods.
+  
