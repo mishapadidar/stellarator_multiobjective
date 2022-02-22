@@ -4,6 +4,7 @@
 - Switch to SurfaceRZPseudoSpectral coordinates
   > `simsopt` vesion `0.7.0` does not have this feature. Need to upgrade to get access.
 - VMEC evaluation print statements take approximately 0.25sec - 0.35sec
+- Discuss the potential catastrophic failures.
 - Discuss the 1D plots and 2d plots.
 - How do VMEC resolution parameters effect sim failures?
 
