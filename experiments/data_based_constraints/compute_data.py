@@ -63,7 +63,7 @@ dim_F = prob.dim_F
 # parameters
 max_iter = 50
 # number of points per iteration
-n_points_per = 200
+n_points_per = 100 # need more than 1
 n_points = max_iter*n_points_per
 # growth factor
 growth_factor = 2
@@ -73,7 +73,7 @@ ub = x0 + max_pert
 lb = x0 - max_pert
 
 # match the seeds
-prob.sync_seeds()
+seed = prob.sync_seeds()
 
 # storage
 X = np.zeros((0,dim_x)) # points
@@ -81,6 +81,8 @@ FX = np.zeros((0,dim_F)) # function values
 CX = np.zeros((0,1)) # constraint values
 
 for ii in range(max_iter):
+  print("\n\n\n")
+  print("iteration: ",ii)
   # sample
   Y = np.random.uniform(lb,ub,(n_points_per,dim_x))
   FY = prob.evalp(Y)
