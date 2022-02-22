@@ -66,6 +66,7 @@ class QHProb1():
       seed = np.random.randint(int(1e6))*np.ones(1)
     self.mpi.comm_world.Bcast(seed,root=0)
     np.random.seed(int(seed[0]))
+    return int(seed[0])
 
   def eval(self,y):
     """
