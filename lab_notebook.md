@@ -1,20 +1,10 @@
 ## Multi-Objective Optimization of Stellarator Plasma Boundaries
 
-### Discuss
-- Switch to SurfaceRZPseudoSpectral coordinates
-  > `simsopt` vesion `0.7.0` does not have this feature. Need to upgrade to get access.
-- VMEC evaluation print statements take approximately 0.25sec - 0.35sec
-- Discuss the potential catastrophic failures.
-- Discuss the 1D plots and 2d plots.
-- How do VMEC resolution parameters effect sim failures?
-
 ### ToDO
-- make non-axis aligned 1d slices of feasible region.
-- make 2d slices of feasible region.
-- look at the effect of the VMEC resolution parameters on simulation failures.
-- Constraints
-  - build data-based bound constraints.
-  - rescale the space according to the bounds.
+- Look at the effect of the VMEC resolution parameters on simulation failures. Regenerate the 1d and 2d plots with high res VMEC parameters.
+- Build 1d plots around a point that fails, to see if there can see noise there.
+- Upgrade script to compute data-based bounds to handle hard failures.
+- rescale the space according to the bounds.
 - choose a method of solving the unrelaxable bound constrained MOO problem.
   - Bi-objective MOO
     - With Bi-objective we can use a discrete set of
@@ -93,4 +83,8 @@
   - [x] SIMSOPT does not seem to run on some of the G2 nodes, specifically some (and perhaps all, though not tested) of 
         g2-cpu-[06-11,97-98]. We can get around running on these by including the following in the slurm submit script 
         `SBATCH --exclude=g2-cpu-[06-11,97-98]`
+  - [x] Look in to SurfaceRZPseudoSpectral coordinates
+       > `simsopt` vesion `0.7.0` does not have this feature. Need to upgrade to get access.
+  - [x] make 2d slices of feasible region.
+  - [x] Write script to build data-based bound constraints.
   
