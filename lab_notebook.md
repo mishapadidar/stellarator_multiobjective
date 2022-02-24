@@ -1,9 +1,10 @@
 ## Multi-Objective Optimization of Stellarator Plasma Boundaries
 
 ### ToDO
+- Build 1d plots around a point that fails, to see if there can see noise there.
+- Run 2D plot with high res parameters except `DELT=0.9` to see effect of `DELT`
 - Compute the data-based bounds
 - rescale the space according to the bounds.
-- Build 1d plots around a point that fails, to see if there can see noise there.
 - choose a method of solving the unrelaxable bound constrained MOO problem.
   - Bi-objective MOO
     - With Bi-objective we can use a discrete set of
