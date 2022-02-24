@@ -43,10 +43,10 @@ def safe_evalp(Y,dim_F,vmec_input,n_partitions):
   n_partitions: number of mpi ranks to use for evals.
 
   Notes:
-  The driver script that calls this function does not need to be run with MPI, 
+  The driver script that calls this function CANNOT be run with MPI, 
   i.e. just do python3 driver_script.py. However,
   Make sure that slurm allocates at least n_partitions mpi ranks for the job.
-  To do this include the following in your slurm .submission file 
+  So include the following in your slurm .submission file 
     #SBATCH -N n_partitions
     #SBATCH -n n_partitions
   """
