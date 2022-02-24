@@ -65,7 +65,7 @@ load_file = "samples_229051.pickle"
 # parameters
 max_iter = 10
 # number of points per iteration
-n_points_per = 500 # need more than 1
+n_points_per = 50 # need more than 1
 n_points = max_iter*n_points_per
 # growth factor
 growth_factor = 2
@@ -91,9 +91,11 @@ if load_file is not None:
   X = indata['X']
   FX = indata['FX']
   CX = indata['CX']
-  seed = indata['seed']
-  np.random.seed(seed)
+  # generate a new seed for sampling
+  prob.sync_seeds()
   lb,ub = compute_bounds(X,CX)
+  # keep same output data file name
+  outfile = load_file
 else:
   # match the seeds
   seed = prob.sync_seeds()
@@ -101,6 +103,8 @@ else:
   X = np.zeros((0,dim_x)) # points
   FX = np.zeros((0,dim_F)) # function values
   CX = np.zeros((0,1)) # constraint values
+  # for data dump
+  outfile = f"samples_{seed}.pickle"
 
 
 for ii in range(max_iter):
@@ -118,15 +122,13 @@ for ii in range(max_iter):
   # find tightest bounds
   lb,ub = compute_bounds(X,CX)
   # dump a pickle file
-  outfile = f"samples_{seed}.pickle"
   outdata = {}
   outdata['X'] = X
   outdata['FX'] = FX
   outdata['CX'] = CX
   outdata['ub'] = ub
   outdata['lb'] = lb
-  outdata['n_points'] = n_points
-  outdata['seed'] = seed
+  outdata['n_points'] = len(X)
   pickle.dump(outdata,open(outfile,"wb"))
   # enlarge
   diff = (ub-lb)/4
