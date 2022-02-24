@@ -7,7 +7,7 @@ import pickle
 
 
 # load the problem
-vmec_input = "../../problem/input.nfp4_QH_warm_start"
+vmec_input = "../../problem/input.nfp4_QH_warm_start_high_res"
 prob = qh_prob1.QHProb1(vmec_input)
 x0 = prob.x0
 dim_x = prob.dim_x
