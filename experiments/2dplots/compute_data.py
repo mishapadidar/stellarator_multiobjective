@@ -14,18 +14,18 @@ dim_x = prob.dim_x
 dim_F = prob.dim_F
 np.random.seed(0) # match the seeds
 
-# choose two direction indexes
-idx1 = 6
-idx2 = 15
-# number of points per direction (N^2 points total)
-n_points_per = 100
-
-# make the discretization
+#  directions and discretization
+idx1,idx2 = 6,15
+ub = np.array([0.075,0.075])
+lb = np.array([-0.05,-.1])
+#  directions and discretization
+#idx1,idx2 = 0, 1
 #max_pert = 0.1
 #ub = max_pert*np.ones(2)
 #lb = -max_pert*np.ones(2)
-ub = np.array([0.075,0.075])
-lb = np.array([-0.05,-.1])
+
+# number of points per direction (N^2 points total)
+n_points_per = 100
 # make a grid
 T1 = np.linspace(lb[0],ub[0],n_points_per)
 T2 = np.linspace(lb[1],ub[1],n_points_per)
