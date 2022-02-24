@@ -15,7 +15,7 @@ class QHProb1():
     F = [(QS - QS_target)**2,(aspect-aspect_target)**2]
   """
     
-  def __init__(self,vmec_input="input.nfp4_QH_warm_start",n_partitions=0,max_mode=2):
+  def __init__(self,vmec_input="input.nfp4_QH_warm_start_high_res",n_partitions=0,max_mode=2):
     """
     n_partitions: number of MPI partitions to create. 
         Using multiple partitions is useful if you are implementing concurrent function
@@ -33,8 +33,8 @@ class QHProb1():
     self.vmec = Vmec(vmec_input, mpi=self.mpi,keep_all_files=False)
 
     # set vmec resolution (should be higher than boundary resolution)
-    self.vmec.indata.mpol = max_mode + 3
-    self.vmec.indata.ntor = max_mode + 3
+    #self.vmec.indata.mpol = max_mode + 5
+    #self.vmec.indata.ntor = max_mode + 5
 
     # define parameters
     surf = self.vmec.boundary
@@ -222,15 +222,16 @@ if __name__=="__main__":
   # evaluate obj and jac with multiple partition
   test_2 = True
   if test_2 == True:
-    prob = QHProb1(n_partitions=8,max_mode=2)
+    prob = QHProb1()
     x0 = prob.x0
-    n_evals = 5
+    n_evals = 10
     Y = x0 + 1e-5*np.random.randn(n_evals,prob.dim_x)
     import time
     t0 = time.time()
     print(prob.evalp(Y))
     print("\n\n\n")
     print('eval time',time.time() - t0)
+    quit()
 
     t0 = time.time()
     jac = prob.jacp(x0,method='forward',h=1e-7)
