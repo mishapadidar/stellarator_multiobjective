@@ -45,10 +45,10 @@ def safe_evalp(Y,dim_F,vmec_input,n_partitions):
   Notes:
   The driver script that calls this function CANNOT be run with MPI, 
   i.e. just do python3 driver_script.py. However,
-  Make sure that slurm allocates at least n_partitions mpi ranks for the job.
+  Make sure that slurm allocates more than n_partitions mpi ranks for the job.
   So include the following in your slurm .submission file 
-    #SBATCH -N n_partitions
-    #SBATCH -n n_partitions
+    #SBATCH -N n_partitions+1
+    #SBATCH -n n_partitions+1
   """
   n_points = len(Y)
   # write pickle files
