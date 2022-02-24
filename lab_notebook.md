@@ -3,6 +3,7 @@
 ### ToDO
 - Build 1d plots around a point that fails, to see if there can see noise there.
 - Run 2D plot with high res parameters except `DELT=0.9` to see effect of `DELT`
+- Implement safe evaluations in the data based bounds.
 - Compute the data-based bounds
 - rescale the space according to the bounds.
 - choose a method of solving the unrelaxable bound constrained MOO problem.
@@ -106,6 +107,8 @@
       > Increasing mpol,ntor by one seems to add about a second to the runtime.
       > Increasing the VMEC iterations to 5000 adds a good amount of time as well.
       >
-      > With 5000 VMEC iterations, DELT=0.5, and npol=mtor=7 evaluations take 10.5-12.5sec, depending on the machine!
+      > With 5000 VMEC iterations, DELT=0.5, and npol=mtor=7 evaluations take 8.5-20sec, depending on the machine! Average
+      > is about 15sec evaluations.
+  - Write a 'safe evaluation' wrapper.
 
   
