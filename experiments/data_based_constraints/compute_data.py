@@ -54,16 +54,18 @@ To increase the bound size we can use stochastic approximation!
 """
 
 # load the problem
-vmec_input = "../../problem/input.nfp4_QH_warm_start"
+vmec_input = "../../problem/input.nfp4_QH_warm_start_high_res"
 prob = qh_prob1.QHProb1(vmec_input)
 x0 = prob.x0
 dim_x = prob.dim_x
 dim_F = prob.dim_F
 
+# warm start with a pickle file (o/w set to None)
+load_file = "samples_229051.pickle"
 # parameters
-max_iter = 50
+max_iter = 10
 # number of points per iteration
-n_points_per = 100 # need more than 1
+n_points_per = 500 # need more than 1
 n_points = max_iter*n_points_per
 # growth factor
 growth_factor = 2
@@ -72,13 +74,34 @@ max_pert = 0.001
 ub = x0 + max_pert
 lb = x0 - max_pert
 
-# match the seeds
-seed = prob.sync_seeds()
+def compute_bounds(X,CX):
+  """
+  Find tightest bounds
+  X: 2D array of points, (n,dim_x)
+  CX: 2D array of 1 or zero constraint satisfaction, (n,1)
+  """
+  idx = np.copy(CX).flatten().astype(bool)
+  lb = np.copy(np.min(X[idx],axis=0))
+  ub = np.copy(np.max(X[idx],axis=0))
+  return lb,ub
 
-# storage
-X = np.zeros((0,dim_x)) # points
-FX = np.zeros((0,dim_F)) # function values
-CX = np.zeros((0,1)) # constraint values
+# load a pickle file
+if load_file is not None:
+  indata = pickle.load(open(load_file,"rb"))
+  X = indata['X']
+  FX = indata['FX']
+  CX = indata['CX']
+  seed = indata['seed']
+  np.random.seed(seed)
+  lb,ub = compute_bounds(X,CX)
+else:
+  # match the seeds
+  seed = prob.sync_seeds()
+  # storage
+  X = np.zeros((0,dim_x)) # points
+  FX = np.zeros((0,dim_F)) # function values
+  CX = np.zeros((0,1)) # constraint values
+
 
 for ii in range(max_iter):
   print("\n\n\n")
@@ -92,28 +115,21 @@ for ii in range(max_iter):
   X = np.copy(np.vstack((X,Y)))
   FX = np.copy(np.vstack((FX,FY)))
   CX = np.copy(np.vstack((CX,CY)))
-  # correct scaling
-  idx = CX.flatten().astype(bool)
-  lb = np.copy(np.min(X[idx],axis=0))
-  ub = np.copy(np.max(X[idx],axis=0))
+  # find tightest bounds
+  lb,ub = compute_bounds(X,CX)
+  # dump a pickle file
+  outfile = f"samples_{seed}.pickle"
+  outdata = {}
+  outdata['X'] = X
+  outdata['FX'] = FX
+  outdata['CX'] = CX
+  outdata['ub'] = ub
+  outdata['lb'] = lb
+  outdata['n_points'] = n_points
+  outdata['seed'] = seed
+  pickle.dump(outdata,open(outfile,"wb"))
   # enlarge
   diff = (ub-lb)/4
   ub = np.copy(ub + growth_factor*diff)
   lb = np.copy(lb - growth_factor*diff)
 
-# compute tightest bound constraints
-idx = CX.flatten().astype(bool)
-lb = np.min(X[idx],axis=0)
-ub = np.max(X[idx],axis=0)
-  
-# dump a pickle file
-outfile = f"samples_{seed}.pickle"
-outdata = {}
-outdata['X'] = X
-outdata['FX'] = FX
-outdata['CX'] = CX
-outdata['ub'] = ub
-outdata['lb'] = lb
-outdata['n_points'] = n_points
-outdata['seed'] = seed
-pickle.dump(outdata,open(outfile,"wb"))

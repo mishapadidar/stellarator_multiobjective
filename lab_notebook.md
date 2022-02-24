@@ -1,12 +1,9 @@
 ## Multi-Objective Optimization of Stellarator Plasma Boundaries
 
 ### ToDO
-- Look at the effect of the VMEC resolution parameters on simulation failures. Regenerate the 1d and 2d plots with high res VMEC parameters.
-    > Increasing the the number of VMEC iterations removes a significant amount of the VMEC failures. 
-- Run a timing test with the new high resolution.
-- Build 1d plots around a point that fails, to see if there can see noise there.
-- Upgrade script to compute data-based bounds to handle hard failures.
+- Compute the data-based bounds
 - rescale the space according to the bounds.
+- Build 1d plots around a point that fails, to see if there can see noise there.
 - choose a method of solving the unrelaxable bound constrained MOO problem.
   - Bi-objective MOO
     - With Bi-objective we can use a discrete set of
@@ -94,4 +91,20 @@
        > VMEC no longer fails catastrophically (no longer kills the python run) when evaluating a select point after
        > we increase the VMEC `mpol` and `ntor` parameters to `6` or higher from `5`. There is no guarantee that this holds
        > at all points which catastrophically fail. 
+  - [x] Look at the effect of the VMEC resolution parameters on simulation failures. Regenerate the 1d and 2d plots with 
+        high res VMEC parameters.
+      > Increasing the the number of VMEC iterations from 2000 to 5000 and increasing DELT to 0.5 from 0.9 (a step size param)
+        removes a significant amount of the VMEC failures. The 
+      > 2d plots went from looking like swiss cheese to a solid piece of cheese, i.e. the feasible region is no longer laden 
+      > with holes.
+  - Run a timing test with the new high resolution.
+      > DELT has a significant effect on runtime, adding a few seconds when increased from 0.9 to 0.5. 
+      > The DELT parameter does have a siginificant effect on the occurence of failures, DELT=0.5 being superior to DELT=0.9. 
+      > Using DELT=0.5 also
+      > helps prevent some, but not all, of the catastrophic failures. 
+      > Increasing mpol,ntor by one seems to add about a second to the runtime.
+      > Increasing the VMEC iterations to 5000 adds a good amount of time as well.
+      >
+      > With 5000 VMEC iterations, DELT=0.5, and npol=mtor=7 evaluations take 10.5-12.5sec, depending on the machine!
+
   
