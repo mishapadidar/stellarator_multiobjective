@@ -1,8 +1,6 @@
 ## Multi-Objective Optimization of Stellarator Plasma Boundaries
 
 ### ToDO
-- Build 1d plots around a point that fails, to see if there can see noise there.
-- Run 2D plot with high res parameters except `DELT=0.9` to see effect of `DELT`
 - Implement safe evaluations in the data based bounds.
 - Compute the data-based bounds
 - rescale the space according to the bounds.
@@ -64,6 +62,7 @@
   - [x] Make 1d-plots to show finite difference fidelity, multi-modality, and simulation failures.
        > Plot shows no noise even up to 1e-9 step size. This shows pretty amazing precision in VMEC solves at the
        > current resolution (by default set to 5 = 2dofs + 3).
+       > We do see noise in steps of size 1e-10 along all directions at x0 for the low fidelity (original) input file.
        > Functions look like convex quadratics around qh_prob1's x0.
        > Simulation failures may not be connected in space. Some directions fail, then stop failing, then fail again 
        > along a 1d line segment, which implies non-convexity of the feasible region.
@@ -99,7 +98,11 @@
         removes a significant amount of the VMEC failures. The 
       > 2d plots went from looking like swiss cheese to a solid piece of cheese, i.e. the feasible region is no longer laden 
       > with holes.
-  - Run a timing test with the new high resolution.
+  - [x] Run 2D plot with high res parameters except `DELT=0.9` to see effect of `DELT`
+      > Even with all other resolution parameters at the higher setting, setting `DELT=0.9` (the original setting) leads to 
+      > simulation failures, making the 2d plots once again look like swiss cheese. I recommend using the high res
+      > setting `DELT=0.5`
+  - [x] Run a timing test with the new high resolution.
       > DELT has a significant effect on runtime, adding a few seconds when increased from 0.9 to 0.5. 
       > The DELT parameter does have a siginificant effect on the occurence of failures, DELT=0.5 being superior to DELT=0.9. 
       > Using DELT=0.5 also
