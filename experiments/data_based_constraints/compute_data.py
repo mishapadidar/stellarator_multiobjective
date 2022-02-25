@@ -1,74 +1,33 @@
 import numpy as np
 import sys
-sys.path.append("../../problem")
 sys.path.append("../../utils")
-import qh_prob1
+sys.path.append("../../problem")
+import safe_eval
 import pickle
+import time
 
-"""
-Develop data-driven constraints.
-Suppose our feasible region Omega is defined by the binary function h(x)
-where h(x) = 1 if x is in Omega and 0 otherwise. Our goal is to learn a
-constraint function c(x) that replicates h as best as possible. It is 
-key that we also aim to classify infeasible points correctly as well.
-Define S as the set of all points in Rn, such that c(x) == h(x). 
-Then we want to find the function c to solve
-  max_c |S(c)|
-which is a volume maximization problem. This approach aims to correctly
-classify all points in Rn, not just Omega, which plagues the approach in 
-practice as |Rn| greatly outweighs |Omega|. 
-
-A more practical method is to maximize a volume fraction with respect to a
-larger set, Gamma, containing Omega. Define the volume fraction V(c) to be the 
-subset of Gamma of which c can classify correctly. Then we solve
-  max_c V(c)
-If Gamma is known then we need to integrate the volume of Gamma for which we can 
-correctly classify, i.e. 
-  max_c int_{Gamma} indicator{c(x)==h(x)} dx
-In high dimensional problems we would solve this via monte-carlo integration, by 
-randomly sampling from a distribution over Gamma. Ultimately this leads us to a
-probabilistic interpretation. Define the random variable X which has non-zero
-probability over Gamma
-  max_c Prob(c(X)==h(X))
-
-Of course if our constraint is hidden then there is no way to set Gamma apriori
-which renders all of these methods useless. However, only minor modification is needed
-to come upon a practical method. For instance using an unbounded distribution, such as a Gaussian,
-will gaurantee that X has a non-zero probability over Gamma, making the probabilistic
-approach viable. Another method of solving the probalistic approach is to sample from a uniform
-distribution over a hypercube, the side-lengths of which are doubled successively until
-the empircal probability of randomly sampling a feasible point is sufficiently low. 
-Poor scaling of the input variables will inevitably cause these methods to fail, or have
-poor convergence properties. 
-
-For a given classifier c, the probability Prob(c(X)==h(X)) is difficult to compute. 
-In practice we should use a differentiable classifier that returns a number c(x) 
-between [0,1]. Rather than maximize the probability explicitly we should use
-a surrogate loss, such as hinge loss. This can be well motivated by convexifying
-the Chance-constrained program by with the Conditional Value-at-Risk (CVaR). This 
-way we can solve the subproblem fairly well, and the difficulty lies mostly in 
-our sampling routine. 
-
-To increase the bound size we can use stochastic approximation!
-
-"""
-
-# load the problem
+# load the problem and starting point
 vmec_input = "../../problem/input.nfp4_QH_warm_start_high_res"
-prob = qh_prob1.QHProb1(vmec_input)
-x0 = prob.x0
-dim_x = prob.dim_x
-dim_F = prob.dim_F
+x0_input = "../../problem/x0.nfp4_QH_warm_start_high_res.pickle"
+x0 = pickle.load(open(x0_input,"rb"))
+dim_x = len(x0)
+
+# start up a safe evaluator
+dim_F = 2
+n_partitions = 2 # one less than the number in the slurm submit file
+eval_script = "./qh_prob1_safe_eval.py"
+evaluator = safe_eval.SafeEval(dim_F,vmec_input,eval_script,n_partitions)
 
 # warm start with a pickle file (o/w set to None)
-load_file = "samples_229051.pickle"
+load_file = "samples_610834.pickle"
+#load_file = None
 # parameters
-max_iter = 10
+max_iter = 2
 # number of points per iteration
-n_points_per = 50 # need more than 1
+n_points_per = 6 # need more than 1
 n_points = max_iter*n_points_per
-# growth factor
-growth_factor = 2
+# growth factor ( greater than 0)
+growth_factor = 1.5
 # initial box size
 max_pert = 0.001 
 ub = x0 + max_pert
@@ -91,14 +50,13 @@ if load_file is not None:
   X = indata['X']
   FX = indata['FX']
   CX = indata['CX']
-  # generate a new seed for sampling
-  prob.sync_seeds()
+  # compute bounds
   lb,ub = compute_bounds(X,CX)
   # keep same output data file name
   outfile = load_file
 else:
-  # match the seeds
-  seed = prob.sync_seeds()
+  seed = np.random.randint(int(1e6))
+  np.random.seed(seed)
   # storage
   X = np.zeros((0,dim_x)) # points
   FX = np.zeros((0,dim_F)) # function values
@@ -112,7 +70,9 @@ for ii in range(max_iter):
   print("iteration: ",ii)
   # sample
   Y = np.random.uniform(lb,ub,(n_points_per,dim_x))
-  FY = prob.evalp(Y)
+  t0 = time.time()
+  FY = evaluator.evalp(Y)
+  print(f"{time.time() - t0} seconds for evaluations")
   # compute constraint values
   CY = (FY[:,0] != np.inf).reshape((-1,1))
   # save data
