@@ -64,6 +64,9 @@
        > current resolution (by default set to 5 = 2dofs + 3).
        > We do see noise in steps of size 1e-10 along all directions at x0 for the low fidelity (original) input file.
        > Functions look like convex quadratics around qh_prob1's x0.
+       > 
+       > See figure `1dplot_low_res_noise.png` from data `1dplot_data_close_up.pickle`.
+       >
        > Simulation failures may not be connected in space. Some directions fail, then stop failing, then fail again 
        > along a 1d line segment, which implies non-convexity of the feasible region.
        > Lastly, bounds for each variable differ greatly.
@@ -98,10 +101,14 @@
         removes a significant amount of the VMEC failures. The 
       > 2d plots went from looking like swiss cheese to a solid piece of cheese, i.e. the feasible region is no longer laden 
       > with holes.
+      >
+      > See figure `2dplot_data_6_15_high_res.png` with data from `2dplot_data_6_15_high_res.pickle`.
   - [x] Run 2D plot with high res parameters except `DELT=0.9` to see effect of `DELT`
       > Even with all other resolution parameters at the higher setting, setting `DELT=0.9` (the original setting) leads to 
       > simulation failures, making the 2d plots once again look like swiss cheese. I recommend using the high res
       > setting `DELT=0.5`
+      > 
+      > See the figure `2dplot_data_6_15_high_res_DELT09.png` with data from `2dplot_data_6_15_high_res_DELT09.pickle`.
   - [x] Run a timing test with the new high resolution.
       > DELT has a significant effect on runtime, adding a few seconds when increased from 0.9 to 0.5. 
       > The DELT parameter does have a siginificant effect on the occurence of failures, DELT=0.5 being superior to DELT=0.9. 
@@ -112,6 +119,6 @@
       >
       > With 5000 VMEC iterations, DELT=0.5, and npol=mtor=7 evaluations take 8.5-20sec, depending on the machine! Average
       > is about 15sec evaluations.
-  - Write a 'safe evaluation' wrapper.
+  - [x] Write a 'safe evaluation' wrapper.
 
   
