@@ -1,4 +1,4 @@
-## Multi-Objective Optimization of Stellarator Plasma Boundaries
+## Lab Notebook
 
 ### ToDO
 - Compute the data-based bounds
