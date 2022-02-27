@@ -1,7 +1,6 @@
 ## Multi-Objective Optimization of Stellarator Plasma Boundaries
 
 ### ToDO
-- Implement safe evaluations in the data based bounds.
 - Compute the data-based bounds
 - rescale the space according to the bounds.
 - choose a method of solving the unrelaxable bound constrained MOO problem.
@@ -120,5 +119,6 @@
       > With 5000 VMEC iterations, DELT=0.5, and npol=mtor=7 evaluations take 8.5-20sec, depending on the machine! Average
       > is about 15sec evaluations.
   - [x] Write a 'safe evaluation' wrapper.
+  - [x] Implement safe evaluations in the data based bounds.
 
   
