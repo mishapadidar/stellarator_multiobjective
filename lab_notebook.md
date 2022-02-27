@@ -1,20 +1,19 @@
 ## Lab Notebook
 
-### ToDO
+### ToDo
 - Compute the data-based bounds
-- rescale the space according to the bounds.
-- choose a method of solving the unrelaxable bound constrained MOO problem.
-  - Bi-objective MOO
-    - With Bi-objective we can use a discrete set of
-      reference points within a Lp or Tchebycheff approach.
-      First need to (globally) minimize each objective to bound the pareto front.
-      Use multistart (fault tolerant)GD or direct search.
-  - DFO MOO solvers
-    - NSGA-II, DMS, MultiMADS, ParEGO
-- Solve and analyze QHProb1
-  - Rescale objectives and inputs before optimization!
-  - optimize and save all evaluation data.
+  - Compute bounds on the objectives
+  - Compute bounds on the inputs
+- Set up multiobjective optimization of QHProb1
+  - Use NSGA-II
+  - Rescale objectives and inputs before optimization.
+  - save all evaluation data.
   - plot the pareto front.
+- Write an `is_nondominated` function.
+- Implement BoTorch multiobjective method.
+- Write a method for high-order resolution of non-dominated points
+- Thoroughly resolve the pareto front.
+- Analyze QHProb1 pareto front
   - look at convexity vs non-convexity.
   - choose a few points of interest.
   - Verify pareto optimality of these points.
@@ -120,5 +119,14 @@
       > is about 15sec evaluations.
   - [x] Write a 'safe evaluation' wrapper.
   - [x] Implement safe evaluations in the data based bounds.
+  - [x] choose a method of solving the unrelaxable bound constrained MOO problem.
+      > Bi-objective MOO:
+      > With Bi-objective we can use a discrete set of
+      > reference points within a Lp or Tchebycheff approach.
+      > First need to (globally) minimize each objective to bound the pareto front.
+      > Use multistart (fault tolerant)GD or direct search.
+      >
+      > DFO MOO solvers:
+      > NSGA-II, DMS, MultiMADS, ParEGO
 
   
