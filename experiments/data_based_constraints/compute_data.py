@@ -60,12 +60,10 @@ x0 = prob.x0
 dim_x = prob.dim_x
 dim_F = prob.dim_F
 
-# warm start with a pickle file (o/w set to None)
-load_file = "samples_229051.pickle"
 # parameters
 max_iter = 10
 # number of points per iteration
-n_points_per = 50 # need more than 1
+n_points_per = 3 # need more than 1
 n_points = max_iter*n_points_per
 # growth factor
 growth_factor = 2
@@ -85,27 +83,16 @@ def compute_bounds(X,CX):
   ub = np.copy(np.max(X[idx],axis=0))
   return lb,ub
 
-# load a pickle file
-if load_file is not None:
-  indata = pickle.load(open(load_file,"rb"))
-  X = indata['X']
-  FX = indata['FX']
-  CX = indata['CX']
-  # generate a new seed for sampling
-  prob.sync_seeds()
-  lb,ub = compute_bounds(X,CX)
-  # keep same output data file name
-  outfile = load_file
-else:
-  # match the seeds
-  seed = prob.sync_seeds()
-  # storage
-  X = np.zeros((0,dim_x)) # points
-  FX = np.zeros((0,dim_F)) # function values
-  CX = np.zeros((0,1)) # constraint values
-  # for data dump
-  outfile = f"samples_{seed}.pickle"
+# match the seeds
+seed = prob.sync_seeds()
 
+# storage
+X = np.zeros((0,dim_x)) # points
+FX = np.zeros((0,dim_F)) # function values
+CX = np.zeros((0,1)) # constraint values
+
+# for data dump
+outfile = f"./data/samples_{seed}.pickle"
 
 for ii in range(max_iter):
   print("\n\n\n")
