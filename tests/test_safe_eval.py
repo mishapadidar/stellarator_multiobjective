@@ -6,8 +6,6 @@ import numpy as np
 run this script with 
 `python3 test_safe_eval.py`
 or submit the same call to slurm. 
-If doing parallel evals ask slurm for 1 more node 
-than the value of n_partitions used.
 """
 
 vmec_input = "../problem/input.nfp4_QH_warm_start"
@@ -31,21 +29,8 @@ x0 = np.array([ 0.1344559674021724 ,0.                , 0.,
 # test single evaluation
 dim_F = 2
 eval_script = "../utils/safe_eval.py"
-n_partitions = 1
-evaluator = safe_eval.SafeEval(dim_F,vmec_input,eval_script,n_partitions)
+evaluator = safe_eval.SafeEval(dim_F,vmec_input,eval_script)
 F = evaluator.eval(x0)
 print(F)
 F = evaluator.eval(y)
 print(F)
-
-# parallel test
-test_2 = True
-if test_2:
-  # run this test on slurm
-  # ask for n_partitions + 1 nodes
-  Y = np.hstack((x0,x0,y,y,x0,y,x0))
-  Y = Y.reshape((7,len(x0)))
-  n_partitions = 3
-  evaluator = safe_eval.SafeEval(dim_F,vmec_input,eval_script,n_partitions)
-  F = evaluator.evalp(Y)
-  print(F)
