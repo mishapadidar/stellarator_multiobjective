@@ -63,12 +63,12 @@ dim_F = prob.dim_F
 # parameters
 max_iter = 10
 # number of points per iteration
-n_points_per = 3 # need more than 1
+n_points_per = 500 # need more than 1
 n_points = max_iter*n_points_per
 # growth factor
-growth_factor = 2
+growth_factor = 1.3
 # initial box size
-max_pert = 0.001 
+max_pert = 0.001
 ub = x0 + max_pert
 lb = x0 - max_pert
 
