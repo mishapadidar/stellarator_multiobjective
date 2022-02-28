@@ -48,7 +48,7 @@ def compute_bounds(X,CX):
 
 # initialize bounds
 filelist = glob.glob("./data/samples_*.pickle")
-lb0,ub0 = combine_bounds_from_files(filelist)
+lb0,ub0,_,__ = combine_bounds_from_files(filelist)
 lb,ub = np.copy(lb0),np.copy(ub0)
 
 ## start with shrunken bounds
