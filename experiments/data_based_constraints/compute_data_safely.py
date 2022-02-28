@@ -20,7 +20,7 @@ cannot access parallelism.
 # parameters
 max_iter = 100
 # number of points per iteration
-n_points_per = 200 # need more than 1
+n_points_per = 50 # need more than 1
 # growth factor ( greater than 0)
 growth_factor = 1.5
 
