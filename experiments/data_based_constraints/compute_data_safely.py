@@ -20,7 +20,7 @@ cannot access parallelism.
 # parameters
 max_iter = 100
 # number of points per iteration
-n_points_per = 100 # need more than 1
+n_points_per = 200 # need more than 1
 # growth factor ( greater than 0)
 growth_factor = 1.5
 
@@ -48,7 +48,8 @@ def compute_bounds(X,CX):
 
 # initialize bounds
 filelist = glob.glob("./data/samples_*.pickle")
-lb,ub = combine_bounds_from_files(filelist)
+lb0,ub0 = combine_bounds_from_files(filelist)
+lb,ub = np.copy(lb0),np.copy(ub0)
 
 ## start with shrunken bounds
 #diff = ub-lb
@@ -87,10 +88,10 @@ for ii in range(max_iter):
   CX = np.copy(np.vstack((CX,CY)))
   print(np.sum(CX),"Total feasible points")
   # find tightest bounds
-  lb_kp1,ub_kp1 = compute_bounds(X,CX)
-  # ensure bound growth
-  lb = np.copy(np.minimum(lb,lb_kp1))
-  ub = np.copy(np.maximum(ub,ub_kp1))
+  lb,ub = compute_bounds(X,CX)
+  # ensure bounds are as large as original
+  lb = np.copy(np.minimum(lb0,lb))
+  ub = np.copy(np.maximum(ub0,ub))
   print('Bounds')
   print(lb,ub)
   sys.stdout.flush()
