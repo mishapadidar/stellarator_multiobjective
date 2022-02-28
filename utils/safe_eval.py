@@ -31,6 +31,7 @@ class SafeEval():
     self.vmec_input = vmec_input
     self.eval_script = eval_script
     self.default_F = default_F*np.ones(dim_F)
+    self.barcode = np.random.randint(int(1e8))
 
   def eval(self,yy):
     """
@@ -46,13 +47,13 @@ class SafeEval():
     outdata['x'] = yy
     outdata['F'] = self.default_F
     outdata['vmec_input'] = self.vmec_input
-    pickle.dump(outdata,open('_safe_eval.pickle','wb'))
+    pickle.dump(outdata,open(f'_safe_eval_{self.barcode}.pickle','wb'))
     # subprocess call
-    bashCommand = f"mpiexec -n 1 python3 {self.eval_script} _safe_eval.pickle"
+    bashCommand = f"mpiexec -n 1 python3 {self.eval_script} _safe_eval_{self.barcode}.pickle"
     process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
     # read the pickle
-    indata = pickle.load(open('_safe_eval.pickle','rb'))
+    indata = pickle.load(open(f'_safe_eval_{self.barcode}.pickle','rb'))
     return indata['F']
   
   
