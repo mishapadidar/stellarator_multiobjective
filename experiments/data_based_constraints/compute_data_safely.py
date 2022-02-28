@@ -49,6 +49,14 @@ def compute_bounds(X,CX):
 # initialize bounds
 filelist = glob.glob("./data/samples_*.pickle")
 lb,ub = combine_bounds_from_files(filelist)
+
+## start with shrunken bounds
+#diff = ub-lb
+#shrink = 0.3 # percent shrink
+#lb = lb + shrink*diff
+#ub = ub - shrink*diff
+
+# dimension
 dim_x = len(lb)
 
 # generate a new seed
@@ -78,12 +86,14 @@ for ii in range(max_iter):
   FX = np.copy(np.vstack((FX,FY)))
   CX = np.copy(np.vstack((CX,CY)))
   print(np.sum(CX),"Total feasible points")
-  sys.stdout.flush()
   # find tightest bounds
   lb_kp1,ub_kp1 = compute_bounds(X,CX)
   # ensure bound growth
   lb = np.copy(np.minimum(lb,lb_kp1))
   ub = np.copy(np.maximum(ub,ub_kp1))
+  print('Bounds')
+  print(lb,ub)
+  sys.stdout.flush()
   # dump a pickle file
   outdata = {}
   outdata['X'] = X
@@ -93,6 +103,7 @@ for ii in range(max_iter):
   outdata['lb'] = lb
   outdata['n_points'] = len(X)
   pickle.dump(outdata,open(outfile,"wb"))
+  print('dumping',outfile)
   # enlarge
   diff = (ub-lb)/4
   ub = np.copy(ub + growth_factor*diff)

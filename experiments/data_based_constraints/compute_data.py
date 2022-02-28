@@ -68,7 +68,7 @@ n_points = max_iter*n_points_per
 # growth factor
 growth_factor = 1.3
 # initial box size
-max_pert = 0.001
+max_pert = 0.0001
 ub = x0 + max_pert
 lb = x0 - max_pert
 
@@ -106,8 +106,13 @@ for ii in range(max_iter):
   X = np.copy(np.vstack((X,Y)))
   FX = np.copy(np.vstack((FX,FY)))
   CX = np.copy(np.vstack((CX,CY)))
+  print(np.sum(CX),"Total feasible points")
+  sys.stdout.flush()
   # find tightest bounds
   lb,ub = compute_bounds(X,CX)
+  print('Bounds')
+  print(lb,ub)
+  sys.stdout.flush()
   # dump a pickle file
   outdata = {}
   outdata['X'] = X
