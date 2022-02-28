@@ -2,11 +2,8 @@
 
 ### ToDo
 - Recompute the data-based bounds
-- Set up multiobjective optimization of QHProb1
-  - [x] Use NSGA-II
-  - [x] Rescale objectives and inputs before optimization.
-  - [x] save all evaluation data.
-  - plot the pareto front.
+- Rerun NSGA-II without bound constraints
+- plot the pareto front from NSGA-II
 - Implement BoTorch multiobjective method.
 - Write a method for high-order resolution of non-dominated points
 - Thoroughly resolve the pareto front.
@@ -133,5 +130,9 @@
   - [x] Plot the data in F-space to see the relative scale
       > Roughly, QS goes from 0 to 1000 and aspect goes from 0 to 0.5 or so over our samples.
   - [x] Write an `is_pareto_efficient` function.
+  - [x] Set up multiobjective optimization of QHProb1
+    - [x] Use NSGA-II
+    - [x] Rescale objectives and inputs before optimization.
+    - [x] save all evaluation data.
 
   
