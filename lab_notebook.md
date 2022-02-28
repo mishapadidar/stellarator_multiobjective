@@ -1,15 +1,12 @@
 ## Lab Notebook
 
 ### ToDo
-- Compute the data-based bounds
-  - Compute bounds on the objectives
-  - Compute bounds on the inputs
+- Recompute the data-based bounds
 - Set up multiobjective optimization of QHProb1
-  - Use NSGA-II
-  - Rescale objectives and inputs before optimization.
-  - save all evaluation data.
+  - [x] Use NSGA-II
+  - [x] Rescale objectives and inputs before optimization.
+  - [x] save all evaluation data.
   - plot the pareto front.
-- Write an `is_nondominated` function.
 - Implement BoTorch multiobjective method.
 - Write a method for high-order resolution of non-dominated points
 - Thoroughly resolve the pareto front.
@@ -119,6 +116,11 @@
       > is about 15sec evaluations.
   - [x] Write a 'safe evaluation' wrapper.
   - [x] Implement safe evaluations in the data based bounds.
+  - [x] Compute the data-based bounds
+    - [x] Compute bounds on the objectives
+         > Scaling varies greatly amongst inputs, as expected
+    - [x] Compute bounds on the inputs
+         > Roughly, QS goes from 0 to 1000 and aspect goes from 0 to 0.5 or so over our samples.
   - [x] choose a method of solving the unrelaxable bound constrained MOO problem.
       > Bi-objective MOO:
       > With Bi-objective we can use a discrete set of
@@ -128,5 +130,8 @@
       >
       > DFO MOO solvers:
       > NSGA-II, DMS, MultiMADS, ParEGO
+  - [x] Plot the data in F-space to see the relative scale
+      > Roughly, QS goes from 0 to 1000 and aspect goes from 0 to 0.5 or so over our samples.
+  - [x] Write an `is_pareto_efficient` function.
 
   
