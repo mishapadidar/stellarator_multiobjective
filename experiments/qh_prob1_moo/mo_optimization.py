@@ -18,25 +18,28 @@ vmec_input = "../../problem/input.nfp4_QH_warm_start_high_res"
 eval_script = "./qh_prob1_safe_eval.py"
 dim_F = 2
 evaluator = safe_eval.SafeEval(dim_F,vmec_input,eval_script)
+# wrap the evaluator
+func_wrap = eval_wrapper(evaluator.eval,dim_x,dim_F)
 
 # set the seed
 seed = np.random.randint(int(1e8))
 np.random.seed(seed)
 
-# wrap the objective
-func = eval_wrapper(evaluator.eval,dim_x,dim_F)
-
 # TODO: run without bounds... they may be over constraining
 # load the bound constraints
 bounds = pickle.load(open("../../problem/bounds.nfp4_QH_warm_start_high_res.pickle","rb"))
-lb,ub = bounds['lb'],bounds['ub']
+lb,ub,F_lb,F_ub = bounds['lb'],bounds['ub'],bounds['F_lb'],bounds['F_ub']
+
+# rescale the objectives
+def objective(xx):
+  return (func_wrap(xx) - F_lb)/(F_ub - F_lb)
 
 # set up NSGAII
 max_eval = 10000
 problem = Problem(dim_x, dim_F)
 for ii in range(dim_x):
   problem.types[ii] = Real(lb[ii],ub[ii])
-problem.function = func
+problem.function = objective
 algorithm = NSGAII(problem)
 algorithm.run(max_eval)
 
