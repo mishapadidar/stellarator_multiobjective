@@ -30,4 +30,4 @@ if __name__=="__main__":
   filelist = glob.glob("./data/samples_*.pickle")
   lb,ub = combine_bounds_from_files(filelist)
   d = {'lb':lb,'ub':ub}
-  pickle.dump(d, open("./qh_prob1_bounds.pickle","wb"))
+  pickle.dump(d, open("../../problem/bounds.nfp4_QH_warm_start_high_res.pickle","wb"))
