@@ -18,7 +18,7 @@ cannot access parallelism.
 """
 
 # parameters
-max_iter = 50
+max_iter = 100
 # number of points per iteration
 n_points_per = 100 # need more than 1
 # growth factor ( greater than 0)
@@ -77,6 +77,8 @@ for ii in range(max_iter):
   X = np.copy(np.vstack((X,Y)))
   FX = np.copy(np.vstack((FX,FY)))
   CX = np.copy(np.vstack((CX,CY)))
+  print(np.sum(CX),"Total feasible points")
+  sys.stdout.flush()
   # find tightest bounds
   lb_kp1,ub_kp1 = compute_bounds(X,CX)
   # ensure bound growth
