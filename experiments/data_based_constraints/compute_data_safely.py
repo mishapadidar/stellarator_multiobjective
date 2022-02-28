@@ -20,7 +20,7 @@ cannot access parallelism.
 # parameters
 max_iter = 50
 # number of points per iteration
-n_points_per = 200 # need more than 1
+n_points_per = 100 # need more than 1
 # growth factor ( greater than 0)
 growth_factor = 1.5
 
@@ -29,6 +29,10 @@ vmec_input = "../../problem/input.nfp4_QH_warm_start_high_res"
 eval_script = "./qh_prob1_safe_eval.py"
 dim_F = 2
 evaluator = safe_eval.SafeEval(dim_F,vmec_input,eval_script)
+
+# use x0 to ensure we get a feasible sample
+x0_input = "../../problem/x0.nfp4_QH_warm_start_high_res.pickle"
+x0 = pickle.load(open(x0_input,"rb"))
 
 
 def compute_bounds(X,CX):
@@ -63,6 +67,9 @@ for ii in range(max_iter):
   print("iteration: ",ii)
   # sample
   Y = np.random.uniform(lb,ub,(n_points_per,dim_x))
+  if ii == 0:
+    # start with a feasible sample
+    Y[0] = x0+1e-3*np.random.randn(dim_x) 
   FY = np.array([evaluator.eval(yy) for yy in Y])
   # compute constraint values
   CY = (FY[:,0] != np.inf).reshape((-1,1))
