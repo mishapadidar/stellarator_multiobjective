@@ -143,5 +143,40 @@
     - [x] Use NSGA-II
     - [x] Rescale objectives and inputs before optimization.
     - [x] save all evaluation data.
+  - Notes on the problem definition
+    > Matt wants to understand how the QS error and aspect ratio trade off. It seems, however, that he is not
+    > necessarily interested in the target aspect ratio of 7, whereas he is interested in the target QS value
+    > of 0. This suggests that multi-objective optimization with [QS^2, (aspect-7)^2] may not be the appropriate
+    > problem formulation. 
+    > 
+    > The aspect ratio objective represents an equality constraint. We know that we can almost always improve
+    > the QS error by allowing for an increased aspect ratio. Thus we expect aspect ratio to always reach its
+    > allowable upper bound if QS is optimized. Which justifies constraining the aspect ratio to its upper bound.
+    > Matt does not have a strict upper bound on the aspect ratio, however, he mentioned that 10 or 11 is 
+    > considered extremely large. The penalty (aspect-7)^2 is a suggests the upper bound without needing an
+    > explicit constraint.
+    >
+    > In Matts QS paper, he adds adds the QS and aspect terms together with unit weights to form an objective, 
+    > which when optimized, achieves the target aspect ratio. This is counter intuitive, as the QS objective 
+    > reaches much larger magnitudes than the aspect objective, which would suggest that the optimize should 
+    > increase the value of the aspect ratio in order to facor the quasisymmetry.
+    >
+    > It may make sense to solve the inequality constrained problem, with some nominal upper bound on aspect
+    > ratio, i.e. `min QS^2 s.t. aspect <= 7`. Then look at the parametric dependence on the upper bound
+    > parameter.
+    >
+  - Partial failures in Simsopt
+    > Simsopt can return partial information. For our problem it returns nan for the QS objective while still
+    > computing the aspect objective, as experienced when evaluating the following point with the high res 
+    > input file.
+    >
+    > ` np.array([ 0.123947  ,-0.00073019,-0.00166885,-0.08593598, 0.16417468,-0.0006390,
+    > 0.00203247, 0.01500165,-0.00815965, 0.00607108, 0.00952204, 0.0066959,
+    > 0.11867847, 0.0040187 ,-0.01210953, 0.09843181, 0.16423649,-0.0288786,
+    > 0.00785483,-0.01251486, 0.00839885, 0.00231556,-0.01070387, 0.00851011]) `
+    >
+    
+    
+    
 
   
