@@ -1,22 +1,31 @@
 ## Lab Notebook
 
 ### ToDo
-- Recompute the data-based bounds
+- Write a Nelder-Mead with Tchebycheff solver
 - Rerun NSGA-II without bound constraints
-- plot the pareto front from NSGA-II
-- Implement BoTorch multiobjective method.
-- Write a method for high-order resolution of non-dominated points
-- Thoroughly resolve the pareto front.
+- plot the pareto front
+- select a few points to make VMEC plots
+- Make bounding boxes around different starting points. Are these points within our original bounds?
+  > `examples/2_Intermediate/inputs/input.nfp2_QA`
+  > circular axisymmetric start
+  > RBC(0,0) =   1.0E+00     ZBS(0,0) =   0.0000E+00
+  >   RBC(0,1) =   2.0E-01     ZBS(0,1) =   2.0E-01
+  > 
+  > helical twist on axis
+  > RBC( 0,  0) = 10.0   ZBS( 0, 0) = 0.0
+  > RBC( 1,  0) =  2.0   ZBS( 1, 0) = 2.0
+  > RBC( 0,  1) =  1.7   ZBS( 0, 1) = 1.7
+  > make sure to divide these numbers by 10!
+- Reoptimize in the extended domain.
 - Analyze QHProb1 pareto front
   - look at convexity vs non-convexity.
   - choose a few points of interest.
   - Verify pareto optimality of these points.
   - locally expand pareto front around non-dominated points.
   - Look at sensitivity to surface labels.
-- Resolve problem for different objectives
-  - QHProb1 with linear or log aspect ratio instead of quadratic.
-  - Choose best aspect ratio objective 
-- Develop and solve the QA problem.
+- Look at other variations of the problem
+  - minimize QS with aspect ratio equality constraint.
+  - do multiobjective opt with [QS, iota] and aspect equality constraint.
 
 
 ### Completed
