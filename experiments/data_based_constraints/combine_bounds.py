@@ -15,24 +15,27 @@ def combine_bounds_from_files(filelist):
   """
   for ii,ff in enumerate(filelist):
     indata = pickle.load(open(ff,"rb"))
+    X = indata['X']
+    FX = indata['FX']
+    CX = indata['CX'].flatten().astype(bool)
+    FX = FX[CX]
+    X  = X[CX]
     if ii == 0:
-      lb = indata['lb']
-      ub = indata['ub']
-      #F_lb = np.min(indata['FX'],axis=0)
-      F_ub = np.max(indata['FX'],axis=0)
+      X_ub = np.copy(np.max(X,axis=0))
+      X_lb = np.copy(np.min(X,axis=0))
+      F_ub = np.copy(np.max(FX,axis=0))
+      F_lb = np.copy(np.zeros_like(F_ub)) # analytic lower bound
     else:
-      lb_f = indata['lb']
-      ub_f = indata['ub']
-      lb = np.copy(np.minimum(lb,lb_f))
-      ub = np.copy(np.maximum(ub,ub_f))
+      X_ub_kp1 = np.copy(np.max(X,axis=0))
+      X_lb_kp1 = np.copy(np.min(X,axis=0))
+      F_ub_kp1 = np.copy(np.max(FX,axis=0))
 
-      #lb_temp = np.min(indata['FX'],axis=0)
-      ub_temp = np.max(indata['FX'],axis=0)
-      #F_lb = np.copy(np.minimum(lb_temp,F_lb)) # analytic lower bound
-      F_lb = np.zeros_like(F_ub)
-      F_ub = np.copy(np.maximum(ub_temp,F_ub))
+      X_ub = np.copy(np.maximum(X_ub,X_ub_kp1))
+      X_lb = np.copy(np.minimum(X_lb,X_lb_kp1))
+      F_ub = np.copy(np.maximum(F_ub_kp1,F_ub))
+      F_lb = np.zeros_like(F_ub) # analytic lower bound
      
-  return lb,ub,F_lb,F_ub
+  return X_lb,X_ub,F_lb,F_ub
 
 if __name__=="__main__":
   import glob
