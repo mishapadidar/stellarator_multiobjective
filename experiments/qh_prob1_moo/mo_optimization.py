@@ -21,21 +21,27 @@ evaluator = safe_eval.SafeEval(dim_F,vmec_input,eval_script)
 # wrap the evaluator
 func_wrap = eval_wrapper(evaluator.eval,dim_x,dim_F)
 
+#max_eval = 3000
+max_eval = int(sys.argv[1])
+
 # set the seed
 seed = np.random.randint(int(1e8))
 np.random.seed(seed)
 
-# TODO: run without bounds... they may be over constraining
 # load the bound constraints
 bounds = pickle.load(open("../../problem/bounds.nfp4_QH_warm_start_high_res.pickle","rb"))
 lb,ub,F_lb,F_ub = bounds['lb'],bounds['ub'],bounds['F_lb'],bounds['F_ub']
+
+# TODO: run without bounds... they may be over constraining
+lb,ub = -np.inf*np.ones(dim_x),np.inf*np.ones(dim_x)
 
 # rescale the objectives
 def objective(xx):
   return (func_wrap(xx) - F_lb)/(F_ub - F_lb)
 
+print("Running optimization")
+print(f"with {max_eval} evals")
 # set up NSGAII
-max_eval = 10000
 problem = Problem(dim_x, dim_F)
 for ii in range(dim_x):
   problem.types[ii] = Real(lb[ii],ub[ii])
@@ -44,8 +50,8 @@ algorithm = NSGAII(problem)
 algorithm.run(max_eval)
 
 # get run data
-X = func.X
-FX = func.FX
+X = func_wrap.X
+FX = func_wrap.FX
 
 # get the non-dominated points
 pareto_idx = is_pareto_efficient(FX)
