@@ -86,7 +86,10 @@ class QHProb1():
     except: # catch failures
       obj1 = np.inf
       obj2 = np.inf
-    return np.array([obj1,obj2])
+    obj =  np.array([obj1,obj2])
+    # catch partial failures
+    obj[np.isnan(obj)] = np.inf
+    return obj
 
   def evalp(self,Y):
     """
