@@ -1,11 +1,13 @@
 ## Lab Notebook
 
 ### ToDo
+- Recompute the bound constraints before optimization! 
+  > Check if Matts new points are in the bound constraints. I expect they will be.
+  > If so, then we dont have to use them as separate starting points.
 - Write a Nelder-Mead with Tchebycheff solver
 - Rerun NSGA-II without bound constraints
 - plot the pareto front
-- select a few points to make VMEC plots
-- Make bounding boxes around different starting points. Are these points within our original bounds?
+- Start optimizations from these points.
   > `examples/2_Intermediate/inputs/input.nfp2_QA`
   > circular axisymmetric start
   > RBC(0,0) =   1.0E+00     ZBS(0,0) =   0.0000E+00
@@ -16,10 +18,10 @@
   > RBC( 1,  0) =  2.0   ZBS( 1, 0) = 2.0
   > RBC( 0,  1) =  1.7   ZBS( 0, 1) = 1.7
   > make sure to divide these numbers by 10!
-- Reoptimize in the extended domain.
-- Analyze QHProb1 pareto front
-  - look at convexity vs non-convexity.
+- Analyze QHProb1 pareto front with Matt
   - choose a few points of interest.
+  - select a few points to make VMEC plots
+  - look at convexity vs non-convexity.
   - Verify pareto optimality of these points.
   - locally expand pareto front around non-dominated points.
   - Look at sensitivity to surface labels.
