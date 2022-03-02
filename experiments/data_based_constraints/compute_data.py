@@ -101,7 +101,7 @@ for ii in range(max_iter):
   Y = np.random.uniform(lb,ub,(n_points_per,dim_x))
   FY = prob.evalp(Y)
   # compute constraint values
-  CY = (FY[:,0] != np.inf).reshape((-1,1))
+  CY = np.all(np.isfinite(FY),axis=1)
   # save data
   X = np.copy(np.vstack((X,Y)))
   FX = np.copy(np.vstack((FX,FY)))
