@@ -24,16 +24,17 @@ def combine_bounds_from_files(filelist):
       X_ub = np.copy(np.max(X,axis=0))
       X_lb = np.copy(np.min(X,axis=0))
       F_ub = np.copy(np.max(FX,axis=0))
-      F_lb = np.copy(np.zeros_like(F_ub)) # analytic lower bound
+      F_lb = np.copy(np.min(FX,axis=0))
     else:
       X_ub_kp1 = np.copy(np.max(X,axis=0))
       X_lb_kp1 = np.copy(np.min(X,axis=0))
       F_ub_kp1 = np.copy(np.max(FX,axis=0))
+      F_lb_kp1 = np.copy(np.min(FX,axis=0))
 
       X_ub = np.copy(np.maximum(X_ub,X_ub_kp1))
       X_lb = np.copy(np.minimum(X_lb,X_lb_kp1))
       F_ub = np.copy(np.maximum(F_ub_kp1,F_ub))
-      F_lb = np.zeros_like(F_ub) # analytic lower bound
+      F_lb = np.copy(np.minimum(F_lb_kp1,F_lb))
      
   return X_lb,X_ub,F_lb,F_ub
 
