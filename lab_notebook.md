@@ -114,7 +114,9 @@
     - [x] Compute bounds on the objectives
          > Scaling varies greatly amongst inputs, as expected
     - [x] Compute bounds on the inputs
-         > Roughly, QS goes from 0 to 1000 and aspect goes from 0 to 0.5 or so over our samples.
+         > Roughly, QS^2 goes from 0.07 to 1e17 and (aspect-target)^2 goes from 1e-14 to 23 or so over our samples.
+         > Remember that the squaring of these objectives amplifies there scale and that they both have
+         > an analytic lower bound of zero.
   - [x] choose a method of solving the unrelaxable bound constrained MOO problem.
       > Bi-objective MOO:
       > With Bi-objective we can use a discrete set of
