@@ -1,23 +1,9 @@
 ## Lab Notebook
 
 ### ToDo
-- Recompute the bound constraints before optimization! 
-  > Check if Matts new points are in the bound constraints. I expect they will be.
-  > If so, then we dont have to use them as separate starting points.
 - Write a Nelder-Mead with Tchebycheff solver
 - Rerun NSGA-II without bound constraints
 - plot the pareto front
-- Start optimizations from these points.
-  > `examples/2_Intermediate/inputs/input.nfp2_QA`
-  > circular axisymmetric start
-  > RBC(0,0) =   1.0E+00     ZBS(0,0) =   0.0000E+00
-  >   RBC(0,1) =   2.0E-01     ZBS(0,1) =   2.0E-01
-  > 
-  > helical twist on axis
-  > RBC( 0,  0) = 10.0   ZBS( 0, 0) = 0.0
-  > RBC( 1,  0) =  2.0   ZBS( 1, 0) = 2.0
-  > RBC( 0,  1) =  1.7   ZBS( 0, 1) = 1.7
-  > make sure to divide these numbers by 10!
 - Analyze QHProb1 pareto front with Matt
   - choose a few points of interest.
   - select a few points to make VMEC plots
@@ -177,6 +163,18 @@
     > 0.11867847, 0.0040187 ,-0.01210953, 0.09843181, 0.16423649,-0.0288786,
     > 0.00785483,-0.01251486, 0.00839885, 0.00231556,-0.01070387, 0.00851011]) `
     >
+  - Matt gave us two new starting points. However, these points are constained within our data based bounds.
+    > `examples/2_Intermediate/inputs/input.nfp2_QA`
+    > circular axisymmetric start
+    > RBC(0,0) =   1.0E+00     ZBS(0,0) =   0.0000E+00
+    >   RBC(0,1) =   2.0E-01     ZBS(0,1) =   2.0E-01
+    > 
+    > helical twist on axis
+    > RBC( 0,  0) = 1.0   ZBS( 0, 0) = 0.0
+    > RBC( 1,  0) = 0.2   ZBS( 1, 0) = 0.2
+    > RBC( 0,  1) = 0.17   ZBS( 0, 1) = 0.17
+    > make sure to divide these numbers by 10!
+  - [x] Recompute the bound constraints before optimization! 
     
     
     
