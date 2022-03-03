@@ -81,7 +81,7 @@ for ii in range(max_iter):
     Y[0] = x0+1e-3*np.random.randn(dim_x) 
   FY = np.array([evaluator.eval(yy) for yy in Y])
   # compute constraint values
-  CY = np.all(np.isfinite(FY),axis=1)
+  CY = np.all(np.isfinite(FY),axis=1).reshape((-1,1))
   # save data
   X = np.copy(np.vstack((X,Y)))
   FX = np.copy(np.vstack((FX,FY)))
