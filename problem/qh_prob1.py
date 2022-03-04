@@ -109,11 +109,13 @@ class QHProb1():
     all worker groups must evaluate this function on the same
     set of points Y.
 
+    WARNING: This is memory intensive because dim_raw is quite large.
+
     Y: array of input variables describing surface
     Y: array of size (n_points, self.dim_x).
 
-    return: array of objectives [QS, aspect]
-    return: array of size (n_points, self.dim_F)
+    return: array of objectives [QS residuals, aspect]
+    return: array of size (n_points, self.dim_raw)
     """
     n_points = np.shape(Y)[0]
 
@@ -184,9 +186,38 @@ class QHProb1():
 
     # do the evals in parallel
     if Raw is None:
-      Raw = self.rawp(Y)
-    # turn the raw into objectives
-    F   = np.array([self.eval(Y[ii],Raw[ii]) for ii in range(n_points)])
+      """
+      Do the evals directly from .eval() rather than .rawp()
+      to avoid the memory burden of message passing the output
+      of .raw()
+      """
+      # special case for 1 partition
+      if self.n_partitions ==1:
+        return np.array([self.eval(y) for y in Y])
+
+      # divide the evals across groups
+      idxs,counts = divide_work(n_points,self.n_partitions)
+      idx = idxs[self.mpi.group]
+
+      # do the evals
+      f   = np.array([self.eval(y) for y in Y[idx]]).flatten()
+
+      # head leader gathers all evals
+      F = np.zeros(n_points*self.dim_F)
+      counts = self.dim_F*np.array(counts).astype(int)
+      self.mpi.comm_leaders.Gatherv(f,(F,counts),root=0)
+      # broadcast to leaders
+      self.mpi.comm_leaders.Bcast(F,root=0)
+      # broadcast internally within group
+      self.mpi.comm_groups.Bcast(F,root=0)
+
+      # reshape to 2D-array
+      F = np.reshape(F,(-1,self.dim_F))
+
+    else:  
+      # turn the raw into objectives
+      F   = np.array([self.eval(Y[ii],Raw[ii]) for ii in range(n_points)])
+
     return np.copy(F)
 
   def jac(self,y,h=1e-7,method='forward'):
