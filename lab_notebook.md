@@ -1,8 +1,9 @@
 ## Lab Notebook
 
 ### ToDo
+- Write a MLSL method to parallelize MO solves.
 - Write a Nelder-Mead with Tchebycheff solver
-- Rerun NSGA-II without bound constraints
+- Run the MLSL method with NSGAII and Nelder-Mead
 - plot the pareto front
 - Analyze QHProb1 pareto front with Matt
   - choose a few points of interest.
@@ -11,7 +12,7 @@
   - Verify pareto optimality of these points.
   - locally expand pareto front around non-dominated points.
   - Look at sensitivity to surface labels.
-- Look at other variations of the problem
+- Discuss other variations of the problem with Matt
   - minimize QS with aspect ratio equality constraint.
   - do multiobjective opt with [QS, iota] and aspect equality constraint.
 
