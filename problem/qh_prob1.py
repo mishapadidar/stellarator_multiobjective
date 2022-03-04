@@ -129,8 +129,8 @@ class QHProb1():
     f   = np.array([self.raw(y) for y in Y[idx]]).flatten()
 
     # head leader gathers all evals
-    F = np.zeros(n_points*self.dim_F)
-    counts = self.dim_F*np.array(counts).astype(int)
+    F = np.zeros(n_points*self.dim_raw)
+    counts = self.dim_raw*np.array(counts).astype(int)
     self.mpi.comm_leaders.Gatherv(f,(F,counts),root=0)
     # broadcast to leaders
     self.mpi.comm_leaders.Bcast(F,root=0)
@@ -138,7 +138,7 @@ class QHProb1():
     self.mpi.comm_groups.Bcast(F,root=0)
 
     # reshape to 2D-array
-    F = np.reshape(F,(-1,self.dim_F))
+    F = np.reshape(F,(-1,self.dim_raw))
     
     return np.copy(F)
 
@@ -284,9 +284,12 @@ if __name__=="__main__":
   test_2 = True
   if test_2 == True:
     prob = QHProb1(max_mode=1)
+    prob.sync_seeds()
     x0 = prob.x0
     n_evals = 10
-    Y = x0 + 1e-5*np.random.randn(n_evals,prob.dim_x)
+    p = 1e-5*np.random.randn(n_evals,prob.dim_x)
+    p[0] = 0.0
+    Y = x0 + p
     import time
     t0 = time.time()
     Raw = prob.rawp(Y)
