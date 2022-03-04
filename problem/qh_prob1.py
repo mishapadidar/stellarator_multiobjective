@@ -49,12 +49,14 @@ class QHProb1():
     self.dim_x = len(surf.x) # dimension
 
     # objectives
-    self.dim_F = 2
+    self.n_qs_radii = 11 # counted from computation
     self.QS = QuasisymmetryRatioResidual(self.vmec,
-                                np.arange(0, 1.01, 0.1),  # Radii to target
+                                np.linspace(0,1,self.n_qs_radii),  # Radii to target
                                 helicity_m=1, helicity_n=-1)  # (M, N) you want in |B|
-    self.qs_target = 0.0
+    self.n_qs_residuals = 44353 # counted from computation
     self.aspect_target = 7.0
+    self.dim_raw = self.n_qs_residuals + 1
+    self.dim_F = 2
 
   def sync_seeds(self):
     """
@@ -74,19 +76,26 @@ class QHProb1():
     y: input variables describing surface
     y: array of size (self.dim_x,)
 
-    return: objectives [QS objective, aspect objective]
+    return: objectives [QS residuals, aspect ratio].
+            QS total is the sum of QS residuals squared. The residuals
+            may be negative. The aspect ratio is single number
+            whereas there are self.n_qs_residuals QS residuals.
     return: array of size (self.dim_F,)
     """
     # update the surface
     self.surf.x = np.copy(y)
+
     # evaluate the objectives
     try: 
-      obj1 = self.QS.total()
-      obj2 = self.vmec.aspect()
+      obj1 = self.QS.residuals()
     except: # catch failures
-      obj1 = np.inf
+      obj1 = np.inf*np.ones(self.n_qs_residuals)
+    try:
+      obj2 = self.vmec.aspect()
+    except:
       obj2 = np.inf
-    obj =  np.array([obj1,obj2])
+
+    obj = np.hstack((obj1,obj2))
     # catch partial failures
     obj[np.isnan(obj)] = np.inf
     return obj
@@ -133,7 +142,7 @@ class QHProb1():
     
     return np.copy(F)
 
-  def eval(self,y,raw=[]):
+  def eval(self,y,raw=None):
     """
     Evaluate the objective vector.
     y: input variables describing surface
@@ -144,17 +153,17 @@ class QHProb1():
     return: objectives [QS objective, aspect objective]
     return: array of size (self.dim_F,)
     """
-    if raw == []:
+    if raw is None:
       raw = self.raw(y)
 
-    obj1 = (raw[0]- self.qs_target)**2
-    obj2 = (raw[1] - self.aspect_target)**2
+    obj1 = np.sum(raw[:-1]**2)
+    obj2 = (raw[-1] - self.aspect_target)**2
     obj =  np.array([obj1,obj2])
     # catch partial failures
     obj[np.isnan(obj)] = np.inf
     return obj
 
-  def evalp(self,Y,Raw=[]):
+  def evalp(self,Y,Raw=None):
     """
     Evaluate the objective vector at many points by distributing
     the resources over worker groups.
@@ -174,7 +183,7 @@ class QHProb1():
     n_points = np.shape(Y)[0]
 
     # do the evals in parallel
-    if Raw == []:
+    if Raw is None:
       Raw = self.rawp(Y)
     # turn the raw into objectives
     F   = np.array([self.eval(Y[ii],Raw[ii]) for ii in range(n_points)])
@@ -252,12 +261,14 @@ if __name__=="__main__":
 
   # test 1:
   # evaluate obj and jac with one partition
-  test_1 = False
+  test_1 = True
   if test_1 == True:
     prob = QHProb1(n_partitions=1,max_mode=2)
     x0 = prob.x0
     import time
     t0 = time.time()
+    raw = prob.raw(x0)
+    print(prob.eval(x0,raw))
     print(prob.eval(x0))
     print("\n\n\n")
     print('eval time',time.time() - t0)
@@ -269,7 +280,7 @@ if __name__=="__main__":
   
   # test 2:
   # evaluate obj and jac with multiple partition
-  test_2 = True
+  test_2 = False
   if test_2 == True:
     prob = QHProb1(max_mode=1)
     x0 = prob.x0
