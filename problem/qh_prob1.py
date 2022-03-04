@@ -156,7 +156,7 @@ class QHProb1():
     if raw is None:
       raw = self.raw(y)
 
-    obj1 = np.sum(raw[:-1]**2)
+    obj1 = np.mean(raw[:-1]**2)
     obj2 = (raw[-1] - self.aspect_target)**2
     obj =  np.array([obj1,obj2])
     # catch partial failures
@@ -261,7 +261,7 @@ if __name__=="__main__":
 
   # test 1:
   # evaluate obj and jac with one partition
-  test_1 = True
+  test_1 = False
   if test_1 == True:
     prob = QHProb1(n_partitions=1,max_mode=2)
     x0 = prob.x0 
@@ -281,7 +281,7 @@ if __name__=="__main__":
   
   # test 2:
   # evaluate obj and jac with multiple partition
-  test_2 = False
+  test_2 = True
   if test_2 == True:
     prob = QHProb1(max_mode=1)
     x0 = prob.x0
