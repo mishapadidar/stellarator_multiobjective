@@ -49,11 +49,11 @@ class QHProb1():
     self.dim_x = len(surf.x) # dimension
 
     # objectives
-    self.n_qs_radii = 11 # counted from computation
+    self.n_qs_radii = 11 
     self.QS = QuasisymmetryRatioResidual(self.vmec,
                                 np.linspace(0,1,self.n_qs_radii),  # Radii to target
                                 helicity_m=1, helicity_n=-1)  # (M, N) you want in |B|
-    self.n_qs_residuals = 44353 # counted from computation
+    self.n_qs_residuals = 44352 # counted from computation
     self.aspect_target = 7.0
     self.dim_raw = self.n_qs_residuals + 1
     self.dim_F = 2
@@ -264,10 +264,11 @@ if __name__=="__main__":
   test_1 = True
   if test_1 == True:
     prob = QHProb1(n_partitions=1,max_mode=2)
-    x0 = prob.x0
+    x0 = prob.x0 
     import time
     t0 = time.time()
     raw = prob.raw(x0)
+    print(raw)
     print(prob.eval(x0,raw))
     print(prob.eval(x0))
     print("\n\n\n")
