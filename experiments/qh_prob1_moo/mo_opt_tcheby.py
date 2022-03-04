@@ -32,7 +32,7 @@ evaluator = safe_eval.SafeEval(dim_F,vmec_input,eval_script)
 func_wrap = eval_wrapper(evaluator.eval,dim_x,dim_F)
 
 # maximum evaluations
-max_eval = 1
+max_eval = 3000
 
 # load the scalarization weights
 weight1 = float(sys.argv[1])
@@ -54,6 +54,7 @@ def objective(xx):
   # map objectives to unit cube
   ev = to_unit_cube(func_wrap(xx),F_lb,F_ub)
   print(ev)
+  sys.stdout.flush()
   # compute tchebycheff
   ret = np.max(weights*ev)
   return ret
@@ -67,11 +68,13 @@ while not valid:
   x0 = np.random.uniform(x_lb,x_ub)
   n_attempts += 1
   print("attempt: ",n_attempts)
+  sys.stdout.flush()
   if np.all(np.isfinite(evaluator.eval(x0))):
     valid = True
   elif n_attempts == 100:
     print("\n\n")
     print("Cant find a feasible starting point")
+    sys.stdout.flush()
     quit()
 # map to cube
 x0 = to_unit_cube(x0,x_lb,x_ub)
@@ -79,10 +82,12 @@ x0 = to_unit_cube(x0,x_lb,x_ub)
 print("Running optimization")
 print(f"with {max_eval} evals")
 print(f"and weights {weights}")
+sys.stdout.flush()
 method='Nelder-Mead'
 options = {'maxfev':max_eval}
 res = minimize(objective,x0,method=method)
 print(res)
+sys.stdout.flush()
 
 # get run data
 X = func_wrap.X
