@@ -68,9 +68,9 @@ class QHProb1():
     np.random.seed(int(seed[0]))
     return int(seed[0])
 
-  def eval(self,y):
+  def raw(self,y):
     """
-    Evaluate the objective vector.
+    Return the raw simulation output
     y: input variables describing surface
     y: array of size (self.dim_x,)
 
@@ -81,11 +81,32 @@ class QHProb1():
     self.surf.x = np.copy(y)
     # evaluate the objectives
     try: 
-      obj1 = (self.QS.total() - self.qs_target)**2
-      obj2 = (self.vmec.aspect() - self.aspect_target)**2
+      obj1 = self.QS.total()
+      obj2 = self.vmec.aspect()
     except: # catch failures
       obj1 = np.inf
       obj2 = np.inf
+    obj =  np.array([obj1,obj2])
+    # catch partial failures
+    obj[np.isnan(obj)] = np.inf
+    return obj
+
+  def eval(self,y,raw=[]):
+    """
+    Evaluate the objective vector.
+    y: input variables describing surface
+    y: array of size (self.dim_x,)
+    raw: (optional), precomputed raw simulation values
+         from self.raw(y)
+
+    return: objectives [QS objective, aspect objective]
+    return: array of size (self.dim_F,)
+    """
+    if raw == []:
+      raw = self.raw(y)
+
+    obj1 = (raw[0]- self.qs_target)**2
+    obj2 = (raw[1] - self.aspect_target)**2
     obj =  np.array([obj1,obj2])
     # catch partial failures
     obj[np.isnan(obj)] = np.inf
@@ -206,9 +227,9 @@ if __name__=="__main__":
 
   # test 1:
   # evaluate obj and jac with one partition
-  test_1 = False
+  test_1 = True
   if test_1 == True:
-    prob = QHProb1(n_partitions=1,max_mode=1)
+    prob = QHProb1(n_partitions=1,max_mode=2)
     x0 = prob.x0
     import time
     t0 = time.time()
@@ -223,7 +244,7 @@ if __name__=="__main__":
   
   # test 2:
   # evaluate obj and jac with multiple partition
-  test_2 = True
+  test_2 = False
   if test_2 == True:
     prob = QHProb1()
     x0 = prob.x0
