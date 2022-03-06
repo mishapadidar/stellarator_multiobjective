@@ -2,7 +2,6 @@
 
 ### ToDo
 - Write a MLSL method to parallelize MO solves.
-- Write a Nelder-Mead with Tchebycheff solver
 - Run the MLSL method with NSGAII and Nelder-Mead
 - plot the pareto front
 - Analyze QHProb1 pareto front with Matt
@@ -178,6 +177,7 @@
     > RBC( 0,  1) = 0.17   ZBS( 0, 1) = 0.17
     > make sure to divide these numbers by 10!
   - [x] Recompute the bound constraints before optimization! 
+  - [x] Write a Nelder-Mead with Tchebycheff solver
     
     
     
