@@ -1,8 +1,8 @@
 ## Lab Notebook
 
 ### ToDo
-- Write a MLSL method to parallelize MO solves.
-- Run the MLSL method with NSGAII and Nelder-Mead
+- Write a MLSL method to parallelize MO solves using Nelder-Mead or NQN.
+- Write a maximum hypervolume method that starts at nondominated points.
 - plot the pareto front
 - Analyze QHProb1 pareto front with Matt
   - choose a few points of interest.
