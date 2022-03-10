@@ -18,7 +18,7 @@ aspect_target = float(sys.argv[1])
 
 # load the problem
 vmec_input = "../../problem/input.nfp4_QH_warm_start_high_res"
-prob = qh_prob1.QHProb1(vmec_input,aspect_target)
+prob = qh_prob1.QHProb1(vmec_input = vmec_input,aspect_target = aspect_target)
 x0 = prob.x0
 dim_x = prob.dim_x
 
@@ -28,7 +28,7 @@ if prob.mpi.proc0_world:
 else:
   master = False
 
-max_eval = 5000 # evals per iteration
+max_eval = 3000 # evals per iteration
 gtol     = 1e-3 # stopping tolerance
 max_solves = 8 # number of penalty updates
 pen_param = 1.0 # penalty parameter initialization
@@ -45,12 +45,16 @@ def con(xx):
 # write the objective
 def obj(xx):
   """ penalty obj """
-  ev = prob.eval(xx)
-  return ev[0] + pen_param*ev[1]
+  ev  = prob.eval(xx)
+  ret = ev[0] + pen_param*ev[1]
+  print(f'f(x): {ret}, qs err: {ev[0]}, con: {ev[1]}')
+  return ret
 def grad(xx):
   """ penalty jac """
   jac = prob.jacp(xx)
-  return jac[0] + pen_param*jac[1]
+  ret = jac[0] + pen_param*jac[1]
+  print('|grad|',np.linalg.norm(ret))
+  return ret
 
 # wrap the objective
 func_wrap = eval_wrapper(obj,dim_x,1)
