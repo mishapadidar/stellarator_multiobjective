@@ -16,7 +16,9 @@ Penalty Method to solve
 """
 
 # load the aspect ratio target
-aspect_target = float(sys.argv[1])
+aspect_target = float(sys.argv[1]) 
+#outputdir = sys.argv[2] # should be formatted as "./data"
+outputdir = "./data"
 
 # load the problem
 vmec_input = "../../problem/input.nfp4_QH_warm_start_high_res"
@@ -69,7 +71,7 @@ def con(xx):
 def obj(xx):
   """ penalty obj """
   #ev  = prob.eval(xx)
-  ev  = func_wrap(ev)
+  ev  = func_wrap(xx)
   ret = ev[0] + pen_param*ev[1]
   if master:
     print(f'f(x): {ret}, qs err: {ev[0]}, aspect^2: {ev[1]}')
@@ -125,7 +127,7 @@ for ii in range(max_solves):
   FX = func_wrap.FX
   
   # dump the evals at the end
-  outfilename = f"./data/data_aspect_{aspect_target}_{seed}.pickle"
+  outfilename = outputdir + f"/data_aspect_{aspect_target}_{seed}.pickle"
   if master:
     print("\n\n\n")
     print(f"Dumping data to {outfilename}")
