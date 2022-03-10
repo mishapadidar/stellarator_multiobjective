@@ -31,7 +31,7 @@ class QHProb1():
       n_partitions = MPI.COMM_WORLD.Get_size()
     self.n_partitions = n_partitions
     self.mpi = MpiPartition(n_partitions)
-    self.vmec = Vmec(vmec_input, mpi=self.mpi,keep_all_files=False)
+    self.vmec = Vmec(vmec_input, mpi=self.mpi,keep_all_files=False,verbose=False)
 
     # set vmec resolution (should be higher than boundary resolution)
     #self.vmec.indata.mpol = max_mode + 5
@@ -293,7 +293,7 @@ if __name__=="__main__":
 
   # test 1:
   # evaluate obj and jac with one partition
-  test_1 = False
+  test_1 = True
   if test_1 == True:
     prob = QHProb1(n_partitions=1,max_mode=2)
     x0 = prob.x0 
