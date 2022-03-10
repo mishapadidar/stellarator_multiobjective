@@ -1,19 +1,9 @@
 ## Lab Notebook
 
 ### ToDo
-- Write a MLSL method to parallelize MO solves using Nelder-Mead or NQN.
-- Write a maximum hypervolume method that starts at nondominated points.
-- plot the pareto front
-- Analyze QHProb1 pareto front with Matt
-  - choose a few points of interest.
-  - select a few points to make VMEC plots
-  - look at convexity vs non-convexity.
-  - Verify pareto optimality of these points.
-  - locally expand pareto front around non-dominated points.
-  - Look at sensitivity to surface labels.
-- Discuss other variations of the problem with Matt
-  - minimize QS with aspect ratio equality constraint.
-  - do multiobjective opt with [QS, iota] and aspect equality constraint.
+- For aspect in [3,4,5,6,7,8,9] minimize the QS err constrained with aspect.
+- plot Aspect vs QS err
+  - choose a few points of interest and make VMEC plots
 
 
 ### Completed
@@ -178,6 +168,9 @@
     > make sure to divide these numbers by 10!
   - [x] Recompute the bound constraints before optimization! 
   - [x] Write a Nelder-Mead with Tchebycheff solver
+  - [x] Discuss problem statement with Matt. 
+    > Turns out that Matt wants to see an Aspect vs QS err plot, but the problem is not necessarily multiobjective
+    > because we arent interested in minimizing aspect.
     
     
     
