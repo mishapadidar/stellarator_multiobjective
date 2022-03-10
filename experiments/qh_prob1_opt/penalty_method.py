@@ -35,6 +35,8 @@ jac = prob.jacp(x0)
 pen_param = np.linalg.norm(jac[0])/np.linalg.norm(jac[1])
 pen_param*=10
 if master:
+  print('')
+  print('aspect target: ', aspect_target)
   print('initial penalty parameter: ',pen_param)
   print('initial |grad|: ',np.linalg.norm(jac[0] + pen_param*jac[1]))
   print('initial |qs grad|: ',np.linalg.norm(jac[0]))
@@ -55,6 +57,9 @@ ctol    = 1e-4 # target constraint tolerance
 method  ='L-BFGS-B'
 options = {'maxfun':max_eval,'gtol':gtol}
 
+# wrap the simsopt call
+func_wrap = eval_wrapper(prob.eval,dim_x,2)
+
 def con(xx):
   """ constraint """
   prob.eval(xx)
@@ -63,7 +68,8 @@ def con(xx):
 # write the objective
 def obj(xx):
   """ penalty obj """
-  ev  = prob.eval(xx)
+  #ev  = prob.eval(xx)
+  ev  = func_wrap(ev)
   ret = ev[0] + pen_param*ev[1]
   if master:
     print(f'f(x): {ret}, qs err: {ev[0]}, aspect^2: {ev[1]}')
@@ -76,8 +82,6 @@ def grad(xx):
     print('|grad|',np.linalg.norm(ret))
   return ret
 
-# wrap the objective
-func_wrap = eval_wrapper(obj,dim_x,1)
 
 # set the seed
 seed = prob.sync_seeds()
