@@ -1,5 +1,5 @@
 
-ASPECTS=('3.0' '4.0' '5.0' '6.0' '7.0')
+ASPECTS=('3.0' '4.0' '5.0' '6.0' '7.0' '8.0')
 NODES=10
 for aspect in "${ASPECTS[@]}"
 do

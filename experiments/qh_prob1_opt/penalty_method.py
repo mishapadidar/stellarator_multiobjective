@@ -17,8 +17,7 @@ Penalty Method to solve
 
 # load the aspect ratio target
 aspect_target = float(sys.argv[1]) 
-#outputdir = sys.argv[2] # should be formatted as "./data"
-outputdir = "./data"
+outputdir = sys.argv[2] # should be formatted as i.e. "../data"
 
 # load the problem
 vmec_input = "../../../problem/input.nfp4_QH_warm_start_high_res"
