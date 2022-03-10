@@ -84,8 +84,8 @@ print(f"with {max_eval} evals")
 print(f"and weights {weights}")
 sys.stdout.flush()
 method='Nelder-Mead'
-options = {'maxfev':max_eval}
-res = minimize(objective,x0,method=method)
+options = {'maxfev':max_eval,'xatol':1e-3}
+res = minimize(objective,x0,method=method,options=options)
 print(res)
 sys.stdout.flush()
 
