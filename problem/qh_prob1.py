@@ -15,7 +15,8 @@ class QHProb1():
     F = [(QS - QS_target)**2,(aspect-aspect_target)**2]
   """
     
-  def __init__(self,vmec_input="input.nfp4_QH_warm_start_high_res",n_partitions=0,max_mode=2):
+  def __init__(self,vmec_input="input.nfp4_QH_warm_start_high_res",n_partitions=0,
+    max_mode=2,aspect_target=7.0):
     """
     n_partitions: number of MPI partitions to create. 
         Using multiple partitions is useful if you are implementing concurrent function
@@ -54,7 +55,7 @@ class QHProb1():
                                 np.linspace(0,1,self.n_qs_radii),  # Radii to target
                                 helicity_m=1, helicity_n=-1)  # (M, N) you want in |B|
     self.n_qs_residuals = 44352 # counted from computation
-    self.aspect_target = 7.0
+    self.aspect_target = aspect_target
     self.dim_raw = self.n_qs_residuals + 1
     self.dim_F = 2
 
