@@ -2,9 +2,9 @@ import numpy as np
 import pickle
 from scipy.optimize import minimize
 import sys
-sys.path.append("../../utils")
-sys.path.append("../../optim")
-sys.path.append("../../problem")
+sys.path.append("../../../utils")
+sys.path.append("../../../optim")
+sys.path.append("../../../problem")
 import qh_prob1
 from eval_wrapper import eval_wrapper
 from gradient_descent import GD
@@ -21,7 +21,7 @@ aspect_target = float(sys.argv[1])
 outputdir = "./data"
 
 # load the problem
-vmec_input = "../../problem/input.nfp4_QH_warm_start_high_res"
+vmec_input = "../../../problem/input.nfp4_QH_warm_start_high_res"
 prob = qh_prob1.QHProb1(vmec_input = vmec_input,aspect_target = aspect_target)
 x0 = prob.x0
 dim_x = prob.dim_x
