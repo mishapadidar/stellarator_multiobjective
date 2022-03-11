@@ -1,8 +1,12 @@
 
-ASPECTS=('3.0' '4.0' '5.0' '6.0' '7.0' '8.0')
-NODES=10
-for aspect in "${ASPECTS[@]}"
+#ASPECTS=('3.0' '4.0' '5.0' '6.0' '7.0' '8.0')
+ASPECTS=('3.0' '4.0' '5.0' '6.0')
+WARM=('../data/data_aspect_4.0_346471.pickle' '../data/data_aspect_4.0_346471.pickle' '../data/data_aspect_5.0_697539.pickle' '../data/data_aspect_6.0_672352.pickle')
+NODES=5
+for idx in ${!ASPECTS[@]}
 do
+  aspect=${ASPECTS[idx]}
+  warm=${WARM[idx]}
   # make a dir
   mkdir "_batch_aspect_${aspect}"
 
@@ -11,11 +15,16 @@ do
 
   # write the run file
   RUN="_batch_aspect_${aspect}/run.sh"
-  printf '%s\n' "sbatch --requeue submit.sub" >> ${RUN}
-  chmod +x ${RUN}
+  if [ ! -f "${RUN}" ]; then
+    printf '%s\n' "sbatch --requeue submit.sub" >> ${RUN}
+    chmod +x ${RUN}
+  fi
 
   # write the submit file
   SUB="_batch_aspect_${aspect}/submit.sub"
+  if [ -f "${SUB}" ]; then
+    rm "${SUB}"
+  fi
   printf '%s\n' "#!/bin/bash" >> ${SUB}
   printf '%s\n' "#SBATCH -J aspect_${aspect} # Job name" >> ${SUB}
   printf '%s\n' "#SBATCH -o ./job_%j.out    # Name of stdout output file(%j expands to jobId)" >> ${SUB}
@@ -27,7 +36,7 @@ do
   printf '%s\n' "#SBATCH --mem-per-cpu=4000   # Memory required per allocated CPU" >> ${SUB}
   printf '%s\n' "#SBATCH --partition=default_partition  # Which partition/queue it should run on" >> ${SUB}
   printf '%s\n' "#SBATCH --exclude=g2-cpu-[01-11],g2-cpu-[97-99]" >> ${SUB}
-  printf '%s\n' "mpiexec -n ${NODES} python3 penalty_method.py ${aspect} ../data" >> ${SUB}
+  printf '%s\n' "mpiexec -n ${NODES} python3 penalty_method.py ${aspect} ../data ${warm}" >> ${SUB}
   
   ## submit
   cd "./_batch_aspect_${aspect}"

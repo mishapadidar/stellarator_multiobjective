@@ -18,11 +18,19 @@ Penalty Method to solve
 # load the aspect ratio target
 aspect_target = float(sys.argv[1]) 
 outputdir = sys.argv[2] # should be formatted as i.e. "../data"
+try:
+  warm_start_file = sys.argv[3]
+  warm_start = True
+except:
+  warm_start = False
 
 # load the problem
 vmec_input = "../../../problem/input.nfp4_QH_warm_start_high_res"
 prob = qh_prob1.QHProb1(vmec_input = vmec_input,aspect_target = aspect_target)
-x0 = prob.x0
+if warm_start == False:
+  x0 = prob.x0
+else:
+  x0 = pickle.load(open(warm_start_file,"rb"))['xopt']
 dim_x = prob.dim_x
 
 # mpi rank
@@ -34,7 +42,7 @@ else:
 # pen parameter initialiization
 jac = prob.jacp(x0)
 pen_param = np.linalg.norm(jac[0])/np.linalg.norm(jac[1])
-pen_param*=10
+pen_param*=100
 if master:
   print('')
   print('aspect target: ', aspect_target)
