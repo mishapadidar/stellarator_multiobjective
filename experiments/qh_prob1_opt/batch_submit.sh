@@ -1,8 +1,9 @@
 
-#ASPECTS=('3.0' '4.0' '5.0' '6.0' '7.0' '8.0')
-ASPECTS=('3.0' '4.0' '5.0' '6.0')
-WARM=('../data/data_aspect_4.0_346471.pickle' '../data/data_aspect_4.0_346471.pickle' '../data/data_aspect_5.0_697539.pickle' '../data/data_aspect_6.0_672352.pickle')
-NODES=5
+#ASPECTS=('3.0' '4.0' '5.0' '6.0')
+#WARM=('../data/data_aspect_3.0_826074.pickle' '../data/data_aspect_4.0_312906.pickle' '../data/data_aspect_5.0_697539.pickle' '../data/data_aspect_6.0_672352.pickle')
+ASPECTS=('7.0' '8.0')
+WARM=('../data/data_aspect_7.0_608594.pickle' '../data/data_aspect_8.0_546619.pickle')
+NODES=6
 for idx in ${!ASPECTS[@]}
 do
   aspect=${ASPECTS[idx]}
@@ -36,6 +37,7 @@ do
   printf '%s\n' "#SBATCH --mem-per-cpu=4000   # Memory required per allocated CPU" >> ${SUB}
   printf '%s\n' "#SBATCH --partition=default_partition  # Which partition/queue it should run on" >> ${SUB}
   printf '%s\n' "#SBATCH --exclude=g2-cpu-[01-11],g2-cpu-[97-99]" >> ${SUB}
+  printf '%s\n' "#SBATCH --exclusive" >> ${SUB}
   printf '%s\n' "mpiexec -n ${NODES} python3 penalty_method.py ${aspect} ../data ${warm}" >> ${SUB}
   
   ## submit
