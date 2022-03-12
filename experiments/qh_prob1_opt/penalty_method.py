@@ -1,5 +1,6 @@
 import numpy as np
 import pickle
+from datetime import datetime
 from scipy.optimize import minimize
 import sys
 sys.path.append("../../../utils")
@@ -59,7 +60,7 @@ if master:
   print('gtol:',gtol)
   print('qs gtol:',qs_gtol)
 
-max_eval = 3000 # evals per iteration
+max_eval = 50 # evals per iteration
 max_solves = 7 # number of penalty updates
 pen_inc = 10.0 # increase parameter
 ctol    = 1e-4 # target constraint tolerance
@@ -107,6 +108,8 @@ for ii in range(max_solves):
   #res     = minimize(obj,x0,jac=grad,method=method,options=options)
   #xopt = res.x
   xopt = GD(obj,grad,x0,alpha0 = 1e-1,gamma=0.5,max_iter=max_eval,gtol=gtol,c_1=1e-6,verbose=False)
+  # TODO: set up gauss newton
+  #GaussNewton(resid,jac,x0,max_iter=1000,gtol=1e-5,gamma_dec=0.5,c_1=1e-4,alpha_min=1e-16,verbose=False):
   fopt = obj(xopt)
   copt = con(xopt)
   if master:
@@ -134,7 +137,9 @@ for ii in range(max_solves):
   FX = func_wrap.FX
   
   # dump the evals at the end
-  outfilename = outputdir + f"/data_aspect_{aspect_target}_{seed}.pickle"
+  now     = datetime.now()
+  barcode = "%d%.2d%.2d%.2d%.2d%.2d"%(now.year,now.month,now.day,now.hour,now.minute,now.second)
+  outfilename = outputdir + f"/data_aspect_{aspect_target}_{barcode}.pickle"
   if master:
     print("\n\n\n")
     print(f"Dumping data to {outfilename}")
@@ -142,6 +147,7 @@ for ii in range(max_solves):
     outdata['xopt'] = xopt
     outdata['fopt'] = fopt
     outdata['copt'] = copt
+    outdata['pen_param'] = pen_param
     outdata['X'] = X
     outdata['FX'] = FX
     outdata['aspect_target'] = aspect_target
