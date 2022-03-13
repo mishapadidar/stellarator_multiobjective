@@ -40,10 +40,15 @@ if prob.mpi.proc0_world:
 else:
   master = False
 
+# set outfile
+now     = datetime.now()
+barcode = "%d%.2d%.2d%.2d%.2d%.2d"%(now.year,now.month,now.day,now.hour,now.minute,now.second)
+outfilename = outputdir + f"/data_aspect_{aspect_target}_{barcode}.pickle"
+
 # pen parameter initialiization
 jac = prob.jacp(x0)
 pen_param = np.linalg.norm(jac[0])/np.linalg.norm(jac[1])
-pen_param*=100
+#pen_param*=100
 if master:
   print('')
   print('aspect target: ', aspect_target)
@@ -60,10 +65,10 @@ if master:
   print('gtol:',gtol)
   print('qs gtol:',qs_gtol)
 
-max_eval = 50 # evals per iteration
+max_eval = 1000 # evals per iteration
 max_solves = 7 # number of penalty updates
 pen_inc = 10.0 # increase parameter
-ctol    = 1e-4 # target constraint tolerance
+ctol    = 1e-6 # target constraint tolerance
 method  ='L-BFGS-B'
 options = {'maxfun':max_eval,'gtol':gtol}
 
@@ -92,7 +97,6 @@ def grad(xx):
     print('|grad|',np.linalg.norm(ret))
   return ret
 
-
 # set the seed
 seed = prob.sync_seeds()
 
@@ -109,7 +113,7 @@ for ii in range(max_solves):
   #xopt = res.x
   xopt = GD(obj,grad,x0,alpha0 = 1e-1,gamma=0.5,max_iter=max_eval,gtol=gtol,c_1=1e-6,verbose=False)
   # TODO: set up gauss newton
-  #GaussNewton(resid,jac,x0,max_iter=1000,gtol=1e-5,gamma_dec=0.5,c_1=1e-4,alpha_min=1e-16,verbose=False):
+  #GaussNewton(prob.residuals,prob.jacp_residuals,x0,max_iter=max_eval,gtol=gtol):
   fopt = obj(xopt)
   copt = con(xopt)
   if master:
@@ -121,7 +125,7 @@ for ii in range(max_solves):
 
   # reset for next iter
   x0 = np.copy(xopt)
-  if copt >ctol:
+  if np.abs(copt) >ctol:
     # only increase penalty if needed
     pen_param = pen_inc*pen_param
   else:
@@ -137,9 +141,6 @@ for ii in range(max_solves):
   FX = func_wrap.FX
   
   # dump the evals at the end
-  now     = datetime.now()
-  barcode = "%d%.2d%.2d%.2d%.2d%.2d"%(now.year,now.month,now.day,now.hour,now.minute,now.second)
-  outfilename = outputdir + f"/data_aspect_{aspect_target}_{barcode}.pickle"
   if master:
     print("\n\n\n")
     print(f"Dumping data to {outfilename}")
