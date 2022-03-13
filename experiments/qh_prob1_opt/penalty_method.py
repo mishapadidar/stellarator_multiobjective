@@ -9,6 +9,7 @@ sys.path.append("../../../problem")
 import qh_prob1
 from eval_wrapper import eval_wrapper
 from gradient_descent import GD
+from gauss_newton import GaussNewton
 
 """
 Penalty Method to solve
@@ -26,7 +27,8 @@ except:
   warm_start = False
 
 # load the problem
-vmec_input = "../../../problem/input.nfp4_QH_warm_start_high_res"
+#vmec_input = "../../../problem/input.nfp4_QH_warm_start_high_res"
+vmec_input = "../../../problem/input.nfp4_QH_warm_start"
 prob = qh_prob1.QHProb1(vmec_input = vmec_input,aspect_target = aspect_target)
 if warm_start == False:
   x0 = prob.x0
@@ -72,30 +74,52 @@ ctol    = 1e-6 # target constraint tolerance
 method  ='L-BFGS-B'
 options = {'maxfun':max_eval,'gtol':gtol}
 
-# wrap the simsopt call
-func_wrap = eval_wrapper(prob.eval,dim_x,2)
-
-def con(xx):
+def constraint(xx):
   """ constraint """
   prob.eval(xx)
   ev = prob.vmec.aspect() - aspect_target
   return ev
 # write the objective
-def obj(xx):
+def objective(xx):
   """ penalty obj """
-  #ev  = prob.eval(xx)
-  ev  = func_wrap(xx)
+  ev  = prob.eval(xx)
+  #ev  = func_wrap(xx)
   ret = ev[0] + pen_param*ev[1]
   if master:
     print(f'f(x): {ret}, qs err: {ev[0]}, aspect^2: {ev[1]}')
   return ret
-def grad(xx):
+def gradient(xx):
   """ penalty jac """
   jac = prob.jacp(xx)
   ret = jac[0] + pen_param*jac[1]
   if master:
     print('|grad|',np.linalg.norm(ret))
   return ret
+# write the objective
+def residuals(xx):
+  """ penalty residuals """
+  # compute residuals
+  resid = prob.residuals(xx)
+  qs_err = np.mean(resid[:-1]**2)
+  asp_err = resid[-1] 
+  # weight the residuals
+  n_qs_resid = len(resid - 1)
+  resid[:-1] *= np.sqrt(1.0/n_qs_resid)
+  resid[-1] *= np.sqrt(pen_param)
+  ff = np.sum(resid**2)
+  if master:
+    print(f'f(x): {ff}, qs mean square: {qs_err}, aspect res: {asp_err}')
+  return resid
+def jac_residuals(xx):
+  """ penalty residuals jac """
+  jac = prob.jacp_residuals(xx)
+  # weight the residuals
+  n_qs_resid = len(jac - 1)
+  jac[:-1] *= np.sqrt(1.0/n_qs_resid)
+  jac[-1] *= np.sqrt(pen_param)
+  if master:
+    print('computing jac')
+  return jac
 
 # set the seed
 seed = prob.sync_seeds()
@@ -111,11 +135,10 @@ for ii in range(max_solves):
     print("iteration",ii)
   #res     = minimize(obj,x0,jac=grad,method=method,options=options)
   #xopt = res.x
-  xopt = GD(obj,grad,x0,alpha0 = 1e-1,gamma=0.5,max_iter=max_eval,gtol=gtol,c_1=1e-6,verbose=False)
-  # TODO: set up gauss newton
-  #GaussNewton(prob.residuals,prob.jacp_residuals,x0,max_iter=max_eval,gtol=gtol):
-  fopt = obj(xopt)
-  copt = con(xopt)
+  #xopt = GD(objective,gradient,x0,alpha0 = 1e-1,gamma=0.5,max_iter=max_eval,gtol=gtol,c_1=1e-6,verbose=False)
+  xopt = GaussNewton(residuals,jac_residuals,x0,max_iter=max_eval,gtol=gtol)
+  fopt = objective(xopt)
+  copt = constraint(xopt)
   if master:
     print("\n\n\n")
     #print(res)
@@ -137,8 +160,8 @@ for ii in range(max_solves):
       gtol = qs_gtol/2
 
   # get run data
-  X = func_wrap.X
-  FX = func_wrap.FX
+  #X = func_wrap.X
+  #FX = func_wrap.FX
   
   # dump the evals at the end
   if master:
@@ -149,8 +172,8 @@ for ii in range(max_solves):
     outdata['fopt'] = fopt
     outdata['copt'] = copt
     outdata['pen_param'] = pen_param
-    outdata['X'] = X
-    outdata['FX'] = FX
+    #outdata['X'] = X
+    #outdata['FX'] = FX
     outdata['aspect_target'] = aspect_target
     pickle.dump(outdata,open(outfilename,"wb"))
     
