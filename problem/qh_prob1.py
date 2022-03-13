@@ -328,6 +328,36 @@ class QHProb1():
     
     return np.copy(jac.T)
 
+  def jac_residuals(self,y,h=1e-7,method='forward'):
+    """
+    Evaluate the residulas jacobian. Use this
+    function if n_partitions=1 or if distinct
+    worker groups are evaluating jacobians at distinct
+    points. 
+
+    y: input variables describing surface
+    y: array of size (self.dim_x,)
+    h: step size
+    h: float
+    method: 'forward' or 'central'
+    method: string
+
+    return: jacobian of self.eval
+    return: array of size (self.dim_F,self.dim_x)
+    """
+    assert method in ['forward','central']
+
+    h2   = h/2.0
+    Ep   = y + h2*np.eye(self.dim_x)
+    Fp   = np.array([self.residuals(e) for e in Ep])
+    if method == 'forward':
+      jac = (Fp - self.residuals(y))/(h2)
+    elif method == 'central': # central difference
+      Em   = y - h2*np.eye(self.dim_x)
+      Fm   = np.array([self.residuals(e) for e in Em])
+      jac = (Fp - Fm)/(h)
+    return np.copy(jac.T)
+
   def jacp_residuals(self,y,h=1e-7,method='forward'):
     """
     Evaluate the residuals jacobian by distributing the 
@@ -352,7 +382,7 @@ class QHProb1():
 
     # special case
     if self.n_partitions == 1:
-      return self.jac(y,h,method)
+      return self.jac_residuals(y,h,method)
 
     h2   = h/2.0
     Ep   = y + h2*np.eye(self.dim_x)
