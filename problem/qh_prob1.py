@@ -221,6 +221,45 @@ class QHProb1():
 
     return np.copy(F)
 
+  def residuals(self,y):
+    """
+    compute the residuals at y
+    """
+    # compute raw objectives
+    resid = self.raw(y)
+    # turn aspect into a residual
+    resid[-1] -= self.aspect_target
+    # catch partial failures
+    resid[np.isnan(resid)] = np.inf
+    return resid
+
+  def residualsp(self,Y):
+    """
+    Evaluate the residual vector at many points by distributing
+    the resources over worker groups.
+
+    This function expects all workers groups to contribute, so 
+    all worker groups must evaluate this function on the same
+    set of points Y.
+
+    Y: array of input variables describing surface
+    Y: array of size (n_points, self.dim_x).     
+    Raw: (optional), array of precomputed raw simulation output
+    Raw: array of size (n_points, self.dim_F).
+
+    return: array of objectives [QS objective, aspect objective]
+    return: array of size (n_points, self.dim_F)
+    """
+    # do the evals in parallel
+    resid = self.rawp(Y)
+    # turn aspect into a residual
+    resid[:,-1] -= self.aspect_target
+    # catch partial failures
+    resid[np.isnan(resid)] = np.inf
+    return resid
+
+    return np.copy(F)
+
   def jac(self,y,h=1e-7,method='forward'):
     """
     Evaluate the objective jacobian. Use this
@@ -289,18 +328,59 @@ class QHProb1():
     
     return np.copy(jac.T)
 
+  def jacp_residuals(self,y,h=1e-7,method='forward'):
+    """
+    Evaluate the residuals jacobian by distributing the 
+    finite difference over the worker groups. 
+    Use this function if n_partitions > 1 AND
+    if all worker groups are evaluating the jacobian 
+    together at the same point, such as in a single
+    optimization run. Do not use this function for 
+    concurrent jacobian evaluations at distinct points.
+
+    y: input variables describing surface
+    y: array of size (self.dim_x,)
+    h: step size
+    h: float
+    method: 'forward' or 'central'
+    method: string
+
+    return: jacobian of self.eval
+    return: array of size (self.dim_F,self.dim_x)
+    """
+    assert method in ['forward','central']
+
+    # special case
+    if self.n_partitions == 1:
+      return self.jac(y,h,method)
+
+    h2   = h/2.0
+    Ep   = y + h2*np.eye(self.dim_x)
+    Fp   = self.residualsp(Ep)
+    if method == 'forward':
+      jac = (Fp - self.residuals(y))/(h2)
+    elif method == 'central': # central difference
+      Em  = y - h2*np.eye(self.dim_x)
+      Fm  = self.residualsp(Em)
+      jac = (Fp - Fm)/(h)
+    
+    return np.copy(jac.T)
+
 if __name__=="__main__":
 
   # test 1:
   # evaluate obj and jac with one partition
-  test_1 = True
+  test_1 = False
   if test_1 == True:
     prob = QHProb1(n_partitions=1,max_mode=2)
     x0 = prob.x0 
     import time
     t0 = time.time()
     raw = prob.raw(x0)
+    resid = prob.residuals(x0)
     print(raw)
+    print(resid)
+    print(resid-raw)
     print(prob.eval(x0,raw))
     print(prob.eval(x0))
     print("\n\n\n")
@@ -315,7 +395,7 @@ if __name__=="__main__":
   # evaluate obj and jac with multiple partition
   test_2 = True
   if test_2 == True:
-    prob = QHProb1(max_mode=1)
+    prob = QHProb1(vmec_input="input.nfp4_QH_warm_start",max_mode=1)
     prob.sync_seeds()
     x0 = prob.x0
     n_evals = 10
@@ -325,7 +405,12 @@ if __name__=="__main__":
     import time
     t0 = time.time()
     Raw = prob.rawp(Y)
+    Res = prob.residualsp(Y)
     print(Raw)
+    print(Res)
+    print(Raw - Res)
+    print(prob.jacp_residuals(x0))
+    quit()
     print(prob.evalp(Y,Raw))
     print(prob.evalp(Y))
     print("\n\n\n")
