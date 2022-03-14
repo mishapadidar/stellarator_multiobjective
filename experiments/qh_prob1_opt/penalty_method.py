@@ -1,7 +1,6 @@
 import numpy as np
 import pickle
 from datetime import datetime
-from scipy.optimize import minimize
 import sys
 sys.path.append("../../../utils")
 sys.path.append("../../../optim")
@@ -27,8 +26,8 @@ except:
   warm_start = False
 
 # load the problem
-#vmec_input = "../../../problem/input.nfp4_QH_warm_start_high_res"
-vmec_input = "../../../problem/input.nfp4_QH_warm_start"
+vmec_input = "../../../problem/input.nfp4_QH_warm_start_high_res"
+#vmec_input = "../../../problem/input.nfp4_QH_warm_start"
 prob = qh_prob1.QHProb1(vmec_input = vmec_input,aspect_target = aspect_target)
 if warm_start == False:
   x0 = prob.x0
@@ -50,7 +49,7 @@ outfilename = outputdir + f"/data_aspect_{aspect_target}_{barcode}.pickle"
 # pen parameter initialiization
 jac = prob.jacp(x0)
 pen_param = np.linalg.norm(jac[0])/np.linalg.norm(jac[1])
-#pen_param*=100
+pen_param*=100
 if master:
   print('')
   print('aspect target: ', aspect_target)
@@ -60,19 +59,17 @@ if master:
   print('initial |aspect^2 grad|: ',np.linalg.norm(jac[1]))
 
 # set relative gtol
-gtol     = 1e-3*np.linalg.norm(jac[0] + pen_param*jac[1]) # stopping tolerance
-qs_gtol  = 1e-4*np.linalg.norm(jac[0]) # target gtol for qs
+gtol     = 1e-2*np.linalg.norm(jac[0] + pen_param*jac[1]) # stopping tolerance
+stat_cond_gtol  = 1e-4*np.linalg.norm(jac[0] + pen_param*jac[1]) # stopping tolerance
 
 if master:
   print('gtol:',gtol)
-  print('qs gtol:',qs_gtol)
+  print('stat_cond gtol:',stat_cond_gtol)
 
-max_eval = 1000 # evals per iteration
+max_eval = 200 # evals per iteration
 max_solves = 7 # number of penalty updates
 pen_inc = 10.0 # increase parameter
 ctol    = 1e-6 # target constraint tolerance
-method  ='L-BFGS-B'
-options = {'maxfun':max_eval,'gtol':gtol}
 
 def constraint(xx):
   """ constraint """
@@ -86,7 +83,7 @@ def objective(xx):
   #ev  = func_wrap(xx)
   ret = ev[0] + pen_param*ev[1]
   if master:
-    print(f'f(x): {ret}, qs err: {ev[0]}, aspect^2: {ev[1]}')
+    print(f'f(x): {ret}, qs mse: {ev[0]}, (asp-a*)^2: {ev[1]}')
   return ret
 def gradient(xx):
   """ penalty jac """
@@ -108,7 +105,7 @@ def residuals(xx):
   resid[-1] *= np.sqrt(pen_param)
   ff = np.sum(resid**2)
   if master:
-    print(f'f(x): {ff}, qs mean square: {qs_err}, aspect res: {asp_err}')
+    print(f'f(x): {ff}, qs mse: {qs_err}, asp res: {asp_err}')
   return resid
 def jac_residuals(xx):
   """ penalty residuals jac """
@@ -131,33 +128,34 @@ if master:
 
 for ii in range(max_solves):
   if master:
-    print("\n\n\n")
+    print("\n")
     print("iteration",ii)
-  #res     = minimize(obj,x0,jac=grad,method=method,options=options)
-  #xopt = res.x
   #xopt = GD(objective,gradient,x0,alpha0 = 1e-1,gamma=0.5,max_iter=max_eval,gtol=gtol,c_1=1e-6,verbose=False)
   xopt = GaussNewton(residuals,jac_residuals,x0,max_iter=max_eval,gtol=gtol)
   fopt = objective(xopt)
   copt = constraint(xopt)
   if master:
-    print("\n\n\n")
+    print("")
     #print(res)
     print('optimal obj:',fopt)
     print('optimal con:',copt)
+    print('pen param:',pen_param)
     sys.stdout.flush()
 
-  # reset for next iter
-  x0 = np.copy(xopt)
-  if np.abs(copt) >ctol:
-    # only increase penalty if needed
-    pen_param = pen_inc*pen_param
-  else:
-    # check stationarity
-    grad_qs = prob.jacp(xopt)[0]
-    if np.linalg.norm(grad_qs) <= qs_gtol:
-      break
-    else:
-      gtol = qs_gtol/2
+  ## compute gradients at minimum
+  resopt = prob.residuals(xopt)
+  jacopt = prob.jacp_residuals(xopt)
+  # grad(mean(qs**2)) = 2*mean(qs_i*grad(qs_i))
+  grad_qs = 2*np.mean(jacopt[:-1].T * resopt[:-1],axis=1)
+  grad_asp = jacopt[-1]
+  
+  # compute the lagrange multiplier
+  lam = -(grad_qs @ grad_asp)/(grad_asp @ grad_asp)
+  stat_cond = np.linalg.norm(grad_qs + lam*grad_asp)
+  if master:
+    print('stationary cond: ',grad_qs + lam*grad_asp)
+    print('lagrange multiplier: ',lam)
+    print('norm stationary cond: ',stat_cond)
 
   # get run data
   #X = func_wrap.X
@@ -165,11 +163,13 @@ for ii in range(max_solves):
   
   # dump the evals at the end
   if master:
-    print("\n\n\n")
+    print("")
     print(f"Dumping data to {outfilename}")
     outdata = {}
     outdata['xopt'] = xopt
     outdata['fopt'] = fopt
+    outdata['residuals'] = resopt
+    outdata['jac_residuals'] = jacopt
     outdata['copt'] = copt
     outdata['pen_param'] = pen_param
     #outdata['X'] = X
@@ -177,3 +177,15 @@ for ii in range(max_solves):
     outdata['aspect_target'] = aspect_target
     pickle.dump(outdata,open(outfilename,"wb"))
     
+  # reset for next iter
+  x0 = np.copy(xopt)
+  if np.abs(copt) >ctol:
+    # only increase penalty if needed
+    pen_param = pen_inc*pen_param
+  else:
+    # check stationarity
+    if stat_cond <=stat_cond_gtol:
+      break
+    else:
+      gtol = gtol/10
+
