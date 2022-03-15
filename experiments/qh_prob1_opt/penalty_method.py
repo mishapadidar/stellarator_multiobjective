@@ -59,7 +59,7 @@ if master:
   print('initial |aspect^2 grad|: ',np.linalg.norm(jac[1]))
 
 # set relative gtol
-gtol     = 1e-2*np.linalg.norm(jac[0] + pen_param*jac[1]) # stopping tolerance
+gtol     = 1e-4*np.linalg.norm(jac[0] + pen_param*jac[1]) # stopping tolerance
 stat_cond_gtol  = 1e-4*np.linalg.norm(jac[0] + pen_param*jac[1]) # stopping tolerance
 
 if master:

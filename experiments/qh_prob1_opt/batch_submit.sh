@@ -1,12 +1,16 @@
 
-ASPECTS=('3.0')
-WARM=('../data/data_aspect_3.0_20220312174044.pickle')
-#ASPECTS=('4.0' '5.0' '6.0')
-#WARM=('../data/data_aspect_4.0_312906.pickle' '../data/data_aspect_5.0_697539.pickle' '../data/data_aspect_6.0_672352.pickle')
+#ASPECTS=('3.0')
+#WARM=('../data/data_aspect_3.0_20220312174044.pickle')
+#ASPECTS=('4.0')
+#WARM=('../data/data_aspect_4.0_20220313201431.pickle')
+#ASPECTS=('5.0')
+#WARM=('../data/data_aspect_5.0_697539.pickle')
 #ASPECTS=('6.0')
 #WARM=('../data/data_aspect_6.0_672352.pickle')
-#ASPECTS=('7.0' '8.0')
-#WARM=('../data/data_aspect_7.0_20220312160438.pickle' '../data/data_aspect_8.0_20220313035614.pickle')
+#ASPECTS=('7.0')
+#WARM=('../data/data_aspect_7.0_20220312160438.pickle')
+ASPECTS=('8.0')
+WARM=('../data/data_aspect_8.0_20220313035614.pickle')
 NODES=6
 for idx in ${!ASPECTS[@]}
 do
