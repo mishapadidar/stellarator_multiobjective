@@ -92,7 +92,8 @@ class QHProb1():
     except: # catch failures
       obj1 = np.inf*np.ones(self.n_qs_residuals)
     try:
-      obj2 = self.vmec.aspect()
+      #obj2 = self.vmec.aspect()
+      obj2 = self.surf.aspect_ratio()
     except:
       obj2 = np.inf
 
