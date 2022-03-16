@@ -32,8 +32,8 @@
   - We only do this if the sim failures left gaps or made noise in the pareto front.
   - get pareto front from low fidelity runs. Recompute the KKT conditions with high fidelity. If they dont pass
     the KKT conditions to desired tolerance warm start the epsilon constraint method.
-  - Use a joint correlated surrogates for low and high fidelity in predictor-corrector method. Can use 
-    low fidelity surrogate as a prior mean.
+  - Use a joint correlated surrogates for low and high fidelity in predictor corrector method. Use co kriging in gpytorch to create a model `s_e(x) = rho*s_c(x) + s_d(x)` where `s_c,s_e` are cheap and expensive models.
+   
     
 
 
