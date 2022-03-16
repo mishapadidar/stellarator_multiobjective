@@ -1,9 +1,40 @@
 ## Lab Notebook
 
 ### ToDo
-- For aspect in [3,4,5,6,7,8,9] minimize the QS err constrained with aspect.
-- plot Aspect vs QS err
-  - choose a few points of interest and make VMEC plots
+- Make pareto front for aspect [4,10]
+  - Philosophy: use eps-constraint method to find points on the pareto front. Then use local predictor-corrector method to expand pareto front locally.
+  - use low fidelity input file 
+  - write function to transform between different dimension representations in simsopt.
+  - Use epsilon constraint method (inequality constrained)
+    - Take in A\* as input
+    - read over data to choose starting point. Choose point to have minimum Q and be within some threshold of the target aspect. If no point exists then increase the threshold. Do not use points if they are pareto optimal.
+    - solve with gauss newton in a penalty method
+    - for high dimensions we can use stochastic-coordinate gauss newton with block size equal to number of mpi ranks
+    - solve to a relative KKT tolerance
+    - save problem dimension
+    - save each data point 
+    - save qs residuals 
+    - save qs mse
+    - save aspect ratio. 
+    - save jacobian of qs residuals
+    - save gradient of aspect
+    - save a flag that indicates pareto optimality.
+    - save the final kkt tolerance.
+    - save the lagrange multiplier
+  - Use local expansion predictor-corrector 
+    - compute pareto front from data. Only start at points that are verified pareto optimal from flag.
+    - select a target point T based on gaps in pareto front.
+    - prediction with either
+      - gauss newton hessian, and finite diff aspect.
+      - or predict by minimizing surrogate for distance to target
+    - correct by minimizing distance to target
+- Do high fidelity resolution of pareto front.
+  - We only do this if the sim failures left gaps or made noise in the pareto front.
+  - get pareto front from low fidelity runs. Recompute the KKT conditions with high fidelity. If they dont pass
+    the KKT conditions to desired tolerance warm start the epsilon constraint method.
+  - Use a joint correlated surrogates for low and high fidelity in predictor-corrector method. Can use 
+    low fidelity surrogate as a prior mean.
+    
 
 
 ### Completed
@@ -171,6 +202,7 @@
   - [x] Discuss problem statement with Matt. 
     > Turns out that Matt wants to see an Aspect vs QS err plot, but the problem is not necessarily multiobjective
     > because we arent interested in minimizing aspect.
+  - [x] Make pareto front for aspect [4,10]
     
     
     
