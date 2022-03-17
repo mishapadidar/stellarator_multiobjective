@@ -86,8 +86,11 @@ seed = prob.sync_seeds()
 ## initialize parameters and tolerances
 #####
 
-max_iter = 450 # evals per iteration
-max_solves = 7 # number of penalty updates
+max_iter = 200 # evals per iteration
+ftarget  = 1e-8
+ftol_abs = ftarget/10.0
+kkt_tol  = 1e-8 
+max_solves = 3 # number of penalty updates
 pen_inc = 10.0 # increase parameter
 ctol    = 1e-6 # target constraint tolerance
 block_size = prob.mpi.ngroups # block size
@@ -100,9 +103,6 @@ grad_asp = jac[1]/(2*c0)
 gc_ratio = np.linalg.norm(grad_qs)/np.linalg.norm(grad_asp)
 # increase the penalty param
 pen_param = 100*gc_ratio
-# set relative gtol
-ftarget  = 1e-8
-kkt_tol  = 1e-8
 
 if master:
   print('')
@@ -112,6 +112,7 @@ if master:
   print('initial |qs grad|: ',np.linalg.norm(grad_qs))
   print('initial |aspect^2 grad|: ',np.linalg.norm(grad_asp))
   print('ftarget:',ftarget)
+  print('ftol_abs:',ftol_abs)
   print('kkt tol:',kkt_tol)
 
 #####
@@ -202,7 +203,7 @@ for ii in range(max_solves):
     print("\n")
     print("iteration",ii)
   #xopt = BlockCoordinateGaussNewton(PenaltyResiduals,JacPenaltyResiduals,x0,block_size=block_size,max_iter=max_iter,ftarget=ftarget)
-  xopt = GaussNewton(PenaltyResiduals,JacPenaltyResiduals,x0,max_iter=max_iter,ftarget=ftarget,gtol=1e-10)
+  xopt = GaussNewton(PenaltyResiduals,JacPenaltyResiduals,x0,max_iter=max_iter,ftarget=ftarget,ftol_abs=ftol_abs,gtol=1e-10)
   fopt = PenaltyObjective(xopt)
   copt = Constraint(xopt)
   if master:
