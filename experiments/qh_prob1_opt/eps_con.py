@@ -5,11 +5,12 @@ import sys
 sys.path.append("../../../utils")
 sys.path.append("../../../optim")
 sys.path.append("../../../problem")
-# TODO: remove
-sys.path.append("../../utils")
-sys.path.append("../../optim")
-sys.path.append("../../problem")
 
+debug = False
+if debug:
+  sys.path.append("../../utils")
+  sys.path.append("../../optim")
+  sys.path.append("../../problem")
 import qh_prob1
 from eval_wrapper import eval_wrapper
 #from gradient_descent import GD
@@ -37,13 +38,15 @@ with a penalty approach
 # load the aspect ratio target
 aspect_target = float(sys.argv[1])  # positive float
 outputdir = sys.argv[2] # should be formatted as i.e. "../data"
-warm_start = bool(sys.argv[3]) # bool
+warm_start = sys.argv[3]=="True" # bool
 vmec_res = sys.argv[4] # vmec input fidelity low, mid, high
 max_mode = int(sys.argv[5]) # max mode = 1,2,3,4,5...
 
 assert vmec_res in ["low","mid","high"]
 if vmec_res == "low":
   vmec_input = "../../../problem/input.nfp4_QH_warm_start"
+  if debug:
+    vmec_input = "../../problem/input.nfp4_QH_warm_start"
 elif vmec_res == "mid":
   vmec_input = "../../../problem/input.nfp4_QH_warm_start_mid_res"
 elif vmec_res == "high":
@@ -52,8 +55,10 @@ elif vmec_res == "high":
 prob = qh_prob1.QHProb1(max_mode=max_mode,vmec_input = vmec_input,aspect_target = aspect_target)
 dim_x = prob.dim_x
 
-if warm_start:
+if warm_start is True:
   dir_list = ["../warm_starts"]
+  if debug:
+    dir_list = ["./warm_starts"]
   x0 = find_warm_start(aspect_target,dir_list,thresh=1e-4)
   # TODO: convert dimension
 else:
@@ -127,7 +132,7 @@ def PenaltyObjective(xx):
   """
   qs_mse = np.mean(prob.qs_residuals(xx)**2)
   asp = Constraint(xx)
-  ret =  + pen_param*np.max(asp,0)**2
+  ret =  + pen_param*max(asp,0)**2
   if master:
     print(f'f(x): {ret}, qs mse: {qs_mse}, asp-a*: {asp}')
   return ret
@@ -143,7 +148,7 @@ def PenaltyResiduals(xx):
   qs_mse = np.mean(resid[:-1]**2)
   asp = resid[-1] 
   # compute residual
-  resid[-1] = np.max(resid[-1] - aspect_target,0)
+  resid[-1] = max(resid[-1] - aspect_target,0)
   # weight the residuals
   resid[:-1] *= np.sqrt(1.0/prob.n_qs_residuals)
   resid[-1]  *= np.sqrt(pen_param)
