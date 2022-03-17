@@ -1,7 +1,7 @@
 
 import numpy as np
 
-def GaussNewton(resid,jac,x0,max_iter=1000,gtol=1e-5,gamma_dec=0.5,c_1=1e-4,alpha_min=1e-16,verbose=False):
+def GaussNewton(resid,jac,x0,max_iter=1000,gtol=1e-5,gamma_dec=0.5,c_1=1e-4,alpha_min=1e-16,ftarget=0.0,verbose=False):
   """
   Gauss Newton method with linesearch to solve nonlinear least squares
     min sum_i resid_i(x)**2
@@ -44,6 +44,11 @@ def GaussNewton(resid,jac,x0,max_iter=1000,gtol=1e-5,gamma_dec=0.5,c_1=1e-4,alph
     if np.linalg.norm(g_k) <= gtol:
       if verbose:
         print('Exiting: gtol reached')
+      stop = True
+    # stopping criteria
+    if f_k <= ftarget:
+      if verbose:
+        print('Exiting: ftarget reached')
       stop = True
 
     # compute step
