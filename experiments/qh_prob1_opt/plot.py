@@ -10,7 +10,13 @@ plot QS^2 error via aspect
 """
 
 # TODO: get new files for aspect=3,6,8
-filelist = ['./data/data_aspect_3.0_20220313214007.pickle','./data/data_aspect_4.0_20220313210157.pickle','./data/data_aspect_5.0_20220313214020.pickle','./data/data_aspect_6.0_20220314093352.pickle','./data/data_aspect_7.0_20220313213937.pickle']
+filelist = [
+'./data/data_aspect_3.0_20220313214007.pickle',
+'./data/data_aspect_4.0_20220313210157.pickle',
+'./data/data_aspect_5.0_20220313214020.pickle',
+'./data/data_aspect_6.0_20220314093352.pickle',
+'./data/data_aspect_7.0_20220313213937.pickle'
+]
 
 aspect_list = []
 qs_list  = []
