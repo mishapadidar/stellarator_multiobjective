@@ -71,6 +71,38 @@ class QHProb1():
     np.random.seed(int(seed[0]))
     return int(seed[0])
 
+  def aspect(self,y):
+    """ compute aspect ratio at a single point"""
+    # update the surface
+    self.surf.x = np.copy(y)
+
+    # evaluate the objectives
+    try:
+      obj = self.surf.aspect_ratio()
+    except:
+      obj = np.inf
+
+    # catch partial failures
+    if np.isnan(obj):
+      obj = np.inf
+    return obj
+
+  def qs_residuals(self,y):
+    """ compute qs residuals at a single point"""
+    # update the surface
+    self.surf.x = np.copy(y)
+
+    # evaluate the objectives
+    try: 
+      obj = self.QS.residuals()
+    except: # catch failures
+      obj = np.inf*np.ones(self.n_qs_residuals)
+
+    # catch partial failures
+    obj[np.isnan(obj)] = np.inf
+    return obj
+   
+
   def raw(self,y):
     """
     Return the raw simulation output
@@ -398,7 +430,6 @@ class QHProb1():
     return np.copy(jac.T)
 
 if __name__=="__main__":
-
   # test 1:
   # evaluate obj and jac with one partition
   test_1 = False
