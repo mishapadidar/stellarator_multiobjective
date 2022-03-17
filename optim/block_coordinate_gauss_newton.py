@@ -2,7 +2,7 @@
 import random
 import numpy as np
 
-def BlockCoordinateGaussNewton(resid,jac,x0,block_size=1,max_iter=1000,gtol=1e-5,gamma_dec=0.5,c_1=1e-4,alpha_min=1e-16,verbose=False):
+def BlockCoordinateGaussNewton(resid,jac,x0,block_size=1,max_iter=1000,ftarget=0.0,gamma_dec=0.5,c_1=1e-4,alpha_min=1e-16,verbose=False):
   """
   A stochastic block coordinate Gauss Newton method with linesearch to solve nonlinear least squares
     min sum_i resid_i(x)**2
@@ -26,6 +26,8 @@ def BlockCoordinateGaussNewton(resid,jac,x0,block_size=1,max_iter=1000,gtol=1e-5
        to only the indexes of x from the second argument.
   x0: (dim_x,) array, starting point
   block_size: int, number of coordinates to descend on per step, must be <= dim
+  max_iter: int, maximum iterations
+  ftarget: float, target function value to reach.
   c_1: Armijo parameters for linesearch.
            must satisfy 0 < c_1 < c_2 < 1
   """
@@ -58,10 +60,10 @@ def BlockCoordinateGaussNewton(resid,jac,x0,block_size=1,max_iter=1000,gtol=1e-5
       print(f'{nn})','resid: ',f_k)
 
     # stopping criteria
-    #if np.linalg.norm(g_k) <= gtol:
-    #  if verbose:
-    #    print('Exiting: gtol reached')
-    #  stop = True
+    if f_k <= ftarget:
+      if verbose:
+        print('Exiting: ftarget reached')
+      stop = True
 
     # compute step
     alpha_k = 1.0 # always try 1 first
