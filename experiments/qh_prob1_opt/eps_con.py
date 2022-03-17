@@ -5,6 +5,11 @@ import sys
 sys.path.append("../../../utils")
 sys.path.append("../../../optim")
 sys.path.append("../../../problem")
+# TODO: remove
+sys.path.append("../../utils")
+sys.path.append("../../optim")
+sys.path.append("../../problem")
+
 import qh_prob1
 from eval_wrapper import eval_wrapper
 #from gradient_descent import GD
@@ -32,25 +37,25 @@ with a penalty approach
 # load the aspect ratio target
 aspect_target = float(sys.argv[1])  # positive float
 outputdir = sys.argv[2] # should be formatted as i.e. "../data"
-warm_start = sys.argv[3] # should ve False or "../data"
-assert warm_start in [False, "../data"]
-vmec_res = sys.argv[4] # vmec input fidelity high, medium, low
-max_mode = sys.argv[5] # max mode = 1,2,3,4,5...
+warm_start = bool(sys.argv[3]) # bool
+vmec_res = sys.argv[4] # vmec input fidelity low, mid, high
+max_mode = int(sys.argv[5]) # max mode = 1,2,3,4,5...
 
 assert vmec_res in ["low","mid","high"]
 if vmec_res == "low":
   vmec_input = "../../../problem/input.nfp4_QH_warm_start"
 elif vmec_res == "mid":
   vmec_input = "../../../problem/input.nfp4_QH_warm_start_mid_res"
-elif vmec_res == "mid":
+elif vmec_res == "high":
   vmec_input = "../../../problem/input.nfp4_QH_warm_start_high_res"
 # load the problem
 prob = qh_prob1.QHProb1(max_mode=max_mode,vmec_input = vmec_input,aspect_target = aspect_target)
 dim_x = prob.dim_x
 
-if warm_start is not False:
+if warm_start:
   dir_list = ["../warm_starts"]
   x0 = find_warm_start(aspect_target,dir_list,thresh=1e-4)
+  # TODO: convert dimension
 else:
   x0 = prob.x0
 
@@ -76,7 +81,7 @@ seed = prob.sync_seeds()
 ## initialize parameters and tolerances
 #####
 
-max_iter = 200 # evals per iteration
+max_iter = 450 # evals per iteration
 max_solves = 7 # number of penalty updates
 pen_inc = 10.0 # increase parameter
 ctol    = 1e-6 # target constraint tolerance
@@ -85,27 +90,31 @@ block_size = prob.mpi.ngroups # block size
 # pen parameter initialization
 c0 = prob.aspect(x0)-aspect_target
 jac = prob.jacp(x0)
-grad_Q   = jac[0]
+grad_qs   = jac[0]
 grad_asp = jac[1]/(2*c0)
-gc_ratio = np.linalg.norm(grad_Q)/np.linalg.norm(grad_asp)
+gc_ratio = np.linalg.norm(grad_qs)/np.linalg.norm(grad_asp)
 # increase the penalty param
 pen_param = 100*gc_ratio
 # set relative gtol
-ftol     = 1e-8
-kkt_tol  = 1e-4*np.linalg.norm(grad_Q) # relative kkt tol
+ftarget  = 1e-8
+kkt_tol  = 1e-8
 
 if master:
   print('')
   print('aspect target: ', aspect_target)
   print('initial penalty parameter: ',pen_param)
-  print('initial |grad|: ',np.linalg.norm(grad_Q + pen_param*grad_asp))
-  print('initial |qs grad|: ',np.linalg.norm(grad_Q))
+  print('initial |grad|: ',np.linalg.norm(grad_qs + pen_param*grad_asp))
+  print('initial |qs grad|: ',np.linalg.norm(grad_qs))
   print('initial |aspect^2 grad|: ',np.linalg.norm(grad_asp))
+  print('ftarget:',ftarget)
   print('kkt tol:',kkt_tol)
 
 #####
 ## define functions
 #####
+
+# wrap the raw objective
+func_wrap = eval_wrapper(prob.raw,prob.dim_x,prob.n_qs_residuals+1)
 
 def Constraint(xx):
   """ constraint c(x) <= 0"""
@@ -117,13 +126,12 @@ def PenaltyObjective(xx):
   p(x) = Q(x) + pen*max(0,(A(x) - A*))**2   
   """
   qs_mse = np.mean(prob.qs_residuals(xx)**2)
-  asp = constraint(xx)
+  asp = Constraint(xx)
   ret =  + pen_param*np.max(asp,0)**2
   if master:
     print(f'f(x): {ret}, qs mse: {qs_mse}, asp-a*: {asp}')
   return ret
 # write the objective
-func_wrap = eval_wrapper(prob.raw,prob.dim_x,prob.n_qs_residuals+1)
 def PenaltyResiduals(xx):
   """ weighted penalty residuals 
     [(1/sqrt(m))q1(x),...,(1/sqrt(m))qm(x),sqrt(pen)*max(A(x) - A*,0)]
@@ -157,7 +165,12 @@ def JacPenaltyResiduals(xx,idx,h=1e-7):
   Ep   = np.vstack((Ep,xx))
   Fp   = prob.residualsp(Ep)
   jac = (Fp[:-1] - Fp[-1])/(h2)
-  jac = jac.T
+  jac = np.copy(jac.T)
+  # save the evals
+  Fp[:,-1] += aspect_target
+  # dont save the center point b/c it has already been saved
+  func_wrap.X = np.append(func_wrap.X,Ep[:-1],axis=0)
+  func_wrap.FX = np.append(func_wrap.FX,Fp[:-1],axis=0)
   # make sure to take gradient of max
   asp = prob.aspect(xx)
   if asp -aspect_target <= 0.0:
@@ -223,29 +236,27 @@ for ii in range(max_solves):
     print('norm stationary cond: ',stat_cond)
 
 
-  # get run data
-  X = func_wrap.X
-  RX = func_wrap.FX
-  
   # dump the evals at the end
   if master:
     print("")
     print(f"Dumping data to {outfilename}")
     outdata = {}
-    outdata['xopt'] = xopt
     outdata['dim_x'] = dim_x
+    outdata['xopt'] = xopt
     outdata['rawopt'] = rawopt
     outdata['qs_mse_opt'] = qs_mse_opt
-    outdata['raw_opt'] = raw_opt
+    outdata['aspect_opt'] = aspect_opt
     outdata['copt'] = copt
-    outdata['jacopt'] = jacopt 
-    outdata['X'] = X
-    outdata['RawFX'] = RX
-    outdata['pen_param'] = pen_param
     outdata['aspect_target'] = aspect_target
     outdata['ctol'] = ctol
+    outdata['jacopt'] = jacopt 
+    outdata['X'] = func_wrap.X
+    outdata['RawX'] = func_wrap.FX
+    outdata['pen_param'] = pen_param
     outdata['KKT'] = KKT
     outdata['lam'] = lam # lagrange multiplier
+    outdata['grad_qs'] = grad_qs
+    outdata['grad_aspect'] = grad_asp
     pickle.dump(outdata,open(outfilename,"wb"))
     
   # reset for next iter
