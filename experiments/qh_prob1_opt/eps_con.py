@@ -14,7 +14,7 @@ if debug:
 import qh_prob1
 from eval_wrapper import eval_wrapper
 #from gradient_descent import GD
-#from gauss_newton import GaussNewton
+from gauss_newton import GaussNewton
 from find_warm_start import find_warm_start
 from block_coordinate_gauss_newton import BlockCoordinateGaussNewton
 
@@ -132,7 +132,7 @@ def PenaltyObjective(xx):
   """
   qs_mse = np.mean(prob.qs_residuals(xx)**2)
   asp = Constraint(xx)
-  ret =  + pen_param*max(asp,0)**2
+  ret = qs_mse + pen_param*max(asp,0)**2
   if master:
     print(f'f(x): {ret}, qs mse: {qs_mse}, asp-a*: {asp}')
   return ret
@@ -156,7 +156,7 @@ def PenaltyResiduals(xx):
   if master:
     print(f'f(x): {ff}, qs mse: {qs_mse}, aspect: {asp}')
   return resid
-def JacPenaltyResiduals(xx,idx,h=1e-7):
+def JacPenaltyResiduals(xx,idx=range(dim_x),h=1e-7):
   """Weighted penalty residuals jacobian 
      Method is comptabile with 
      BlockCoordinateGaussNewton
@@ -166,7 +166,7 @@ def JacPenaltyResiduals(xx,idx,h=1e-7):
   """
   #jac = prob.jacp_residuals(xx)
   h2   = h/2.0
-  Ep   = xx + h2*np.eye(prob.dim_x)[idx]
+  Ep   = xx + h2*np.eye(dim_x)[idx]
   Ep   = np.vstack((Ep,xx))
   Fp   = prob.residualsp(Ep)
   jac = (Fp[:-1] - Fp[-1])/(h2)
@@ -201,7 +201,8 @@ for ii in range(max_solves):
   if master:
     print("\n")
     print("iteration",ii)
-  xopt = BlockCoordinateGaussNewton(PenaltyResiduals,JacPenaltyResiduals,x0,block_size=block_size,max_iter=max_iter,ftarget=ftarget)
+  #xopt = BlockCoordinateGaussNewton(PenaltyResiduals,JacPenaltyResiduals,x0,block_size=block_size,max_iter=max_iter,ftarget=ftarget)
+  xopt = GaussNewton(PenaltyResiduals,JacPenaltyResiduals,x0,max_iter=max_iter,ftarget=ftarget,gtol=1e-10)
   fopt = PenaltyObjective(xopt)
   copt = Constraint(xopt)
   if master:
@@ -216,7 +217,7 @@ for ii in range(max_solves):
   rawopt = prob.raw(xopt)
   jacopt = prob.jacp_residuals(xopt)
   # grad(mean(qs**2)) = 2*mean(qs_i*grad(qs_i))
-  grad_qs = 2*np.mean(jacopt[:-1].T * rawopt[:-1],axis=1)
+  grad_qs = 2*np.mean(jacopt[:-1].T @ rawopt[:-1],axis=1)
   grad_asp = jacopt[-1]
 
   # compute some values
