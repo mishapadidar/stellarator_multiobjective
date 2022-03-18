@@ -22,6 +22,9 @@ def GaussNewton(resid,jac,x0,max_iter=1000,gtol=1e-5,gamma_dec=0.5,c_1=1e-4,alph
   x_k = np.copy(x0)
   dim = len(x_k)
 
+  # jitter for poorly conditioned jacobian
+  jitter = 1e-10
+
   # stop when gradient is flat (within tolerance)
   nn = 0
   stop = False
@@ -31,7 +34,11 @@ def GaussNewton(resid,jac,x0,max_iter=1000,gtol=1e-5,gamma_dec=0.5,c_1=1e-4,alph
     J_k = np.copy(jac(x_k))
     Q,R = np.linalg.qr(J_k)
     r_k = np.copy(resid(x_k))
-    p_k = - np.copy(np.linalg.solve(R.T @ R,J_k.T @ r_k))
+    try:
+      p_k = - np.copy(np.linalg.solve(R.T @ R,J_k.T @ r_k))
+    except:
+      print("Warning: ill conditioned jacobian. Adding jitter.")
+      p_k = - np.copy(np.linalg.solve(R.T @ R + jitter*np.eye(dim),J_k.T @ r_k))
 
     # func and grad
     f_k = np.sum(r_k**2)
