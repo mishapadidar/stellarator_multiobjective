@@ -53,7 +53,6 @@ elif vmec_res == "high":
   vmec_input = "../../../problem/input.nfp4_QH_warm_start_high_res"
 # load the problem
 prob = qh_prob1.QHProb1(max_mode=max_mode,vmec_input = vmec_input,aspect_target = aspect_target)
-dim_x = prob.dim_x
 
 if warm_start is True:
   dir_list = ["../data"]
@@ -67,6 +66,7 @@ if warm_start is True:
   prob = qh_prob1.QHProb1(max_mode=max_mode,vmec_input = vmec_input,aspect_target = aspect_target)
 else:
   x0 = prob.x0
+dim_x = prob.dim_x
 
 #####
 ## set some stuff
@@ -90,11 +90,18 @@ seed = prob.sync_seeds()
 ## initialize parameters and tolerances
 #####
 
+F0 = prob.eval(x0)
+aspect0 = F0[1] + aspect_target
+qs_mse0 = F0[0]
+if master:
+  print(f"Starting with qs mse {qs_mse0} and aspect {aspect0}.")
+
 max_iter = 100 # evals per iteration
-ftarget  = 1e-8
-ftol_abs = ftarget/100.0
-kkt_tol  = 1e-8 
-max_solves = 2 # number of penalty updates
+ftarget  = 1e-9
+ftol_abs = ftarget/1000.0
+kkt_tol  = 1e-7 
+max_solves = 4 # number of penalty updates
+pen0    = 1000 # initial penalty param.
 pen_inc = 10.0 # increase parameter
 ctol    = 1e-6 # target constraint tolerance
 block_size = prob.mpi.ngroups # block size
@@ -106,7 +113,7 @@ grad_qs = (2/prob.n_qs_residuals)*jac0[:-1].T @ raw0[:-1]
 grad_asp = jac0[-1]
 gc_ratio = np.linalg.norm(grad_qs)/np.linalg.norm(grad_asp)
 # increase the penalty param
-pen_param = 100*gc_ratio
+pen_param = pen0*gc_ratio
 
 if master:
   print('')
