@@ -86,11 +86,11 @@ seed = prob.sync_seeds()
 ## initialize parameters and tolerances
 #####
 
-max_iter = 200 # evals per iteration
+max_iter = 100 # evals per iteration
 ftarget  = 1e-8
 ftol_abs = ftarget/10.0
 kkt_tol  = 1e-8 
-max_solves = 3 # number of penalty updates
+max_solves = 2 # number of penalty updates
 pen_inc = 10.0 # increase parameter
 ctol    = 1e-6 # target constraint tolerance
 block_size = prob.mpi.ngroups # block size
@@ -218,7 +218,7 @@ for ii in range(max_solves):
   rawopt = prob.raw(xopt)
   jacopt = prob.jacp_residuals(xopt)
   # grad(mean(qs**2)) = 2*mean(qs_i*grad(qs_i))
-  grad_qs = 2*np.mean(jacopt[:-1].T @ rawopt[:-1],axis=1)
+  grad_qs = (2/prob.n_qs_residuals)*jacopt[:-1].T @ rawopt[:-1]
   grad_asp = jacopt[-1]
 
   # compute some values
