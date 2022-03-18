@@ -56,10 +56,10 @@ prob = qh_prob1.QHProb1(max_mode=max_mode,vmec_input = vmec_input,aspect_target 
 dim_x = prob.dim_x
 
 if warm_start is True:
-  dir_list = ["../warm_starts"]
+  dir_list = ["../data"]
   if debug:
-    dir_list = ["./warm_starts"]
-  x0 = find_warm_start(aspect_target,dir_list,thresh=1e-4)
+    dir_list = ["./data"]
+  x0 = find_warm_start(aspect_target,dir_list,thresh=5e-4)
   # TODO: convert dimension
 else:
   x0 = prob.x0
@@ -88,7 +88,7 @@ seed = prob.sync_seeds()
 
 max_iter = 100 # evals per iteration
 ftarget  = 1e-8
-ftol_abs = ftarget/10.0
+ftol_abs = ftarget/100.0
 kkt_tol  = 1e-8 
 max_solves = 2 # number of penalty updates
 pen_inc = 10.0 # increase parameter
