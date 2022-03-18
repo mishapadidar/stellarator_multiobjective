@@ -59,8 +59,12 @@ if warm_start is True:
   dir_list = ["../data"]
   if debug:
     dir_list = ["./data"]
+  # find a good starting point
   x0 = find_warm_start(aspect_target,dir_list,thresh=5e-4)
-  # TODO: convert dimension
+  # convert to higher dimension representation
+  x0 = prob.increase_dimension(x0,max_mode)
+  # reset just to be sure
+  prob = qh_prob1.QHProb1(max_mode=max_mode,vmec_input = vmec_input,aspect_target = aspect_target)
 else:
   x0 = prob.x0
 
@@ -237,9 +241,12 @@ for ii in range(max_solves):
   else:
     KKT = False
   if master:
+    print('qs mse',qs_mse_opt)
+    print('aspect',aspect_opt)
     print('stationary cond: ',grad_qs + lam*grad_asp)
     print('lagrange multiplier: ',lam)
     print('norm stationary cond: ',stat_cond)
+    sys.stdout.flush()
 
 
   # dump the evals at the end
@@ -248,6 +255,7 @@ for ii in range(max_solves):
     print(f"Dumping data to {outfilename}")
     outdata = {}
     outdata['dim_x'] = dim_x
+    outdata['max_mode'] = max_mode
     outdata['xopt'] = xopt
     outdata['rawopt'] = rawopt
     outdata['qs_mse_opt'] = qs_mse_opt
