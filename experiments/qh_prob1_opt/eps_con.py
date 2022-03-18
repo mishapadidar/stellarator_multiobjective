@@ -96,10 +96,10 @@ ctol    = 1e-6 # target constraint tolerance
 block_size = prob.mpi.ngroups # block size
 
 # pen parameter initialization
-c0 = prob.aspect(x0)-aspect_target
-jac = prob.jacp(x0)
-grad_qs   = jac[0]
-grad_asp = jac[1]/(2*c0)
+raw0 = prob.raw(x0)
+jac0 = prob.jacp_residuals(x0)
+grad_qs = (2/prob.n_qs_residuals)*jac0[:-1].T @ raw0[:-1]
+grad_asp = jac0[-1]
 gc_ratio = np.linalg.norm(grad_qs)/np.linalg.norm(grad_asp)
 # increase the penalty param
 pen_param = 100*gc_ratio
@@ -217,7 +217,6 @@ for ii in range(max_solves):
   # compute gradients at minimum
   rawopt = prob.raw(xopt)
   jacopt = prob.jacp_residuals(xopt)
-  # grad(mean(qs**2)) = 2*mean(qs_i*grad(qs_i))
   grad_qs = (2/prob.n_qs_residuals)*jacopt[:-1].T @ rawopt[:-1]
   grad_asp = jacopt[-1]
 
