@@ -59,6 +59,29 @@ class QHProb1():
     self.dim_raw = self.n_qs_residuals + 1
     self.dim_F = 2
 
+  def increase_dimension(self,xx,target_max_mode):
+    """
+    Convert a vector xx to a higher mode representation.
+    """
+    dims = [8,24,48,80,120] # modes 1,2,3,4,5
+    dim_x = len(xx)
+    current_max_mode = dims.index(dim_x)+1
+    assert current_max_mode <= target_max_mode,"Need larger mode target"
+    # create a surface object with the right max_mode
+    surf = self.vmec.boundary
+    surf.fix_all()
+    surf.fixed_range(mmin=0, mmax=current_max_mode,
+                     nmin=-current_max_mode, nmax=current_max_mode, fixed=False)
+    surf.fix("rc(0,0)") # fix the Major radius
+    # set x
+    surf.x = xx
+    # now increase the mode
+    surf.fix_all()
+    surf.fixed_range(mmin=0, mmax=target_max_mode,
+                     nmin=-target_max_mode, nmax=target_max_mode, fixed=False)
+    surf.fix("rc(0,0)") # Major radius
+    return surf.x
+
   def sync_seeds(self):
     """
     Sync the np.random.seed of the various worker groups.
@@ -430,6 +453,7 @@ class QHProb1():
     return np.copy(jac.T)
 
 if __name__=="__main__":
+
   # test 1:
   # evaluate obj and jac with one partition
   test_1 = False
