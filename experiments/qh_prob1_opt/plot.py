@@ -28,11 +28,13 @@ for ff in filelist:
 # comppute pareto set
 FX = np.vstack((aspect_list,qs_list)).T
 idx_pareto = is_pareto_efficient(FX)
-idx_pareto = np.sort(idx_pareto)
 aspect_pareto = FX[idx_pareto,0]
 qs_pareto = FX[idx_pareto,1]
+idx_sort = np.argsort(aspect_pareto)
+aspect_pareto = aspect_pareto[idx_sort]
+qs_pareto = qs_pareto[idx_sort]
 
-plt.scatter(aspect_list,qs_list,'-o',alpha=0.5)
+plt.scatter(aspect_list,qs_list,alpha=0.5)
 plt.plot(aspect_pareto,qs_pareto,'-s',color='r',linewidth=3)
 plt.xlabel('aspect ratio')
 plt.ylabel('Quasisymmetry MSE')
