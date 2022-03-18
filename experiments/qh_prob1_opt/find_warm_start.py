@@ -27,7 +27,6 @@ def find_warm_start(aspect_target,dir_list,thresh =5e-4):
     return find_warm_start(aspect_target,dir_list,10*thresh)
   else:
     # choose the best point within the threshold
-    print(QX[np.argmin(QX)])
     return X[np.argmin(QX)]
   
 if __name__=="__main__":
