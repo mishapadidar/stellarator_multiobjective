@@ -1,4 +1,5 @@
 import numpy as np
+import glob
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
 import matplotlib
@@ -9,27 +10,18 @@ import pickle
 plot QS^2 error via aspect
 """
 
-# TODO: get new files for aspect=3,6,8
-filelist = [
-'./data/data_aspect_3.0_20220313214007.pickle',
-'./data/data_aspect_4.0_20220313210157.pickle',
-'./data/data_aspect_5.0_20220313214020.pickle',
-'./data/data_aspect_6.0_20220314093352.pickle',
-'./data/data_aspect_7.0_20220313213937.pickle'
-]
+filelist = glob.glob("./data/*.pickle")
 
-aspect_list = []
-qs_list  = []
+aspect_list = np.zeros(0)
+qs_list  = np.zeros(0)
 for ff in filelist:
   indata = pickle.load(open(ff,"rb"))
-  residuals = indata['residuals']
-  qs_mse = np.mean(residuals[:-1]**2)
-  target = indata['aspect_target']
-  asp = residuals[-1] + target
-  print('qs mse: ',qs_mse,'asp',asp)
-  aspect_list.append(asp)
-  qs_list.append(qs_mse)
-plt.plot(aspect_list,qs_list,'-o',linewidth=3)
+  RX = indata['RawX']
+  qs_mse = np.mean(RX[:,:-1]**2,axis=1)
+  asp = RX[:,-1]
+  aspect_list = np.append(aspect_list,asp)
+  qs_list = np.append(qs_list,qs_mse)
+plt.scatter(aspect_list,qs_list,'-o',linewidth=3)
 plt.xlabel('aspect ratio')
 plt.ylabel('Quasisymmetry MSE')
 plt.yscale('log')
