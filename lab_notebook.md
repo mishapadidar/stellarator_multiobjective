@@ -3,31 +3,28 @@
 ### ToDo
 - Make pareto front for aspect [4,10]
   - Philosophy: use eps-constraint method to find points on the pareto front. Then use local predictor-corrector method to expand pareto front locally.
-  - use low fidelity input file 
-  - write function to transform between different dimension representations in simsopt.
-  - Use epsilon constraint method (inequality constrained)
-    - Take in A\* as input
-    - read over data to choose starting point. Choose point to have minimum Q and be within some threshold of the target aspect. If no point exists then increase the threshold. Do not use points if they are pareto optimal.
-    - solve with gauss newton in a penalty method
-    - for high dimensions we can use stochastic-coordinate gauss newton with block size equal to number of mpi ranks
-    - solve to a relative KKT tolerance
-    - save problem dimension
-    - save each data point 
-    - save qs residuals 
-    - save qs mse
-    - save aspect ratio. 
-    - save jacobian of qs residuals
-    - save gradient of aspect
-    - save a flag that indicates pareto optimality.
-    - save the final kkt tolerance.
-    - save the lagrange multiplier
+  - [x] use low fidelity input file as much as possible
+    > We had to switch to high fidelty for `max_mode=5` otherwise VMEC would give singular jacobians. We also used high res input for low aspect ratios `<4.5`.
+  - [x] write function to transform between different dimension representations in simsopt.
+  - [x] Use epsilon constraint method (inequality constrained)
+    - [x] Take in A\* as input
+    - [x] read over data to choose starting point. Choose point to have minimum Q and be within some threshold of the target aspect. If no point exists then increase the threshold. Do not use points if they are pareto optimal.
+    - [x] solve with gauss newton in a penalty method
+    - [x] save problem dimension
+    - [x] save each data point 
+    - [x] save qs residuals 
+    - [x] save qs mse
+    - [x] save aspect ratio. 
+    - [x] save jacobian of qs residuals
+    - [x] save gradient of aspect
+    - [x] save a flag that indicates pareto optimality.
+    - [x] save the final kkt tolerance.
+    - [x] save the lagrange multiplier
   - Use local expansion predictor-corrector 
+    - Two method options. The first method expands the pareto front locally in terms of the lagrange multipliers, computes a predictor step, then corrects by minimizing the norm of the KKT conditions. The second method chooses a target point nearby our solution, computes a predictor step via the KKT conditions for the minimum distance problem, then corrects by minimizing the distance to the target point. The norms used in the corrector step can be L1 norms or infinity norms to avoid the fourth order powers.
     - compute pareto front from data. Only start at points that are verified pareto optimal from flag.
-    - select a target point T based on gaps in pareto front.
-    - prediction with either
-      - gauss newton hessian, and finite diff aspect.
-      - or predict by minimizing surrogate for distance to target
-    - correct by minimizing distance to target
+    - Build MNH quadratic model with composition for prediction step.
+    - Setup correction step with gauss newton or bobyqa.
 - Do high fidelity resolution of pareto front.
   - We only do this if the sim failures left gaps or made noise in the pareto front.
   - get pareto front from low fidelity runs. Recompute the KKT conditions with high fidelity. If they dont pass
