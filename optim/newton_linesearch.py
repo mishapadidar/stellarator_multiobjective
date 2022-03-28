@@ -28,7 +28,7 @@ def NewtonLinesearch(F,H,x0,max_iter=1000,ftarget=0.0,gamma_dec=0.5,c_1=1e-4,alp
 
   # inital guess
   x_k = np.copy(x0)
-  F_k = F(x_k)
+  F_k = np.copy(F(x_k))
   dim = len(x_k)
 
   nn = 0
@@ -36,7 +36,7 @@ def NewtonLinesearch(F,H,x0,max_iter=1000,ftarget=0.0,gamma_dec=0.5,c_1=1e-4,alp
   while stop==False:
 
     # compute search direction
-    H_k = H(x_k)
+    H_k = np.copy(H(x_k))
     #P,L,U = plu_decomp(H_k)
     #p_k = - np.linalg.solve(U,np.linalg.solve(L,np.linalg.solve(P,F_k)))
     p_k = - np.linalg.solve(H_k,F_k)
@@ -61,7 +61,7 @@ def NewtonLinesearch(F,H,x0,max_iter=1000,ftarget=0.0,gamma_dec=0.5,c_1=1e-4,alp
       # take step
       x_kp1 = np.copy(x_k + alpha_k*p_k)
       # f_kp1
-      F_kp1 = F(x_kp1)
+      F_kp1 = np.copy(F(x_kp1))
       f_kp1 = np.linalg.norm(F_kp1)
       # compute the armijo condition
       armijo = f_kp1 <= f_k + c_1*g_k @ (x_kp1 - x_k)
