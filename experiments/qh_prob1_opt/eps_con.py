@@ -272,6 +272,8 @@ for ii in range(max_solves):
     outdata['RawX'] = func_wrap.FX
     outdata['pen_param'] = pen_param
     outdata['KKT'] = KKT
+    outdata['kkt_tol'] = kkt_tol
+    outdata['stationary_condition'] = stat_cond
     outdata['lam'] = lam # lagrange multiplier
     outdata['grad_qs'] = grad_qs
     outdata['grad_aspect'] = grad_asp
