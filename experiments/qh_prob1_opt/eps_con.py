@@ -42,6 +42,7 @@ warm_start = sys.argv[3]=="True" # bool
 vmec_res = sys.argv[4] # vmec input fidelity low, mid, high
 max_mode = int(sys.argv[5]) # max mode = 1,2,3,4,5...
 
+assert max_mode <=5, "max mode out of range"
 assert vmec_res in ["low","mid","high"]
 if vmec_res == "low":
   vmec_input = "../../../problem/input.nfp4_QH_warm_start"
@@ -97,11 +98,11 @@ if master:
   print(f"Starting with qs mse {qs_mse0} and aspect {aspect0}.")
 
 max_iter = 100 # evals per iteration
-ftarget  = 1e-9
-ftol_abs = ftarget/1000.0
+ftarget  = 1e-10
+ftol_abs = ftarget*1e-5
 kkt_tol  = 1e-7 
 max_solves = 4 # number of penalty updates
-pen0    = 1000 # initial penalty param.
+pen0    = 1e4 # initial penalty param.
 pen_inc = 10.0 # increase parameter
 ctol    = 1e-6 # target constraint tolerance
 block_size = prob.mpi.ngroups # block size
