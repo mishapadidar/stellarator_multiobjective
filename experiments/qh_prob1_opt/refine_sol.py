@@ -193,10 +193,6 @@ qs_mse_opt = np.mean(rawopt[:-1]**2)
 aspect_opt = rawopt[-1]
 copt = aspect_opt - aspect_target
 stat_cond = np.linalg.norm(grad_qs + lamopt * grad_asp)
-if stat_cond <= kkt_tol:
-  KKT = True
-else:
-  KKT = False
 
 if master:
   print("")
@@ -223,9 +219,8 @@ if master:
   outdata['jacopt'] = jacopt 
   outdata['X'] = func_wrap.X
   outdata['RawX'] = func_wrap.FX
-  outdata['KKT'] = KKT
   outdata['kkt_tol'] = kkt_tol
-  outdata['grad_qs'] = grad_qs
+  outdata['stationary_condition'] = stat_cond
   outdata['grad_aspect'] = grad_asp
   if not debug:
     pickle.dump(outdata,open(outfilename,"wb"))
