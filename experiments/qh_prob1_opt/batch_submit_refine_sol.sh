@@ -47,7 +47,7 @@ do
   
   ## submit
   cd "./_batch_aspect_${aspect}"
-  #"./run.sh"
+  "./run.sh"
   cd ..
 
   ## sleep to prevent job clashes
