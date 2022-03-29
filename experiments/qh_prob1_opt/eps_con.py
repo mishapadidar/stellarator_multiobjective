@@ -37,10 +37,9 @@ with a penalty approach
 
 # load the aspect ratio target
 aspect_target = float(sys.argv[1])  # positive float
-outputdir = sys.argv[2] # should be formatted as i.e. "../data"
-warm_start = sys.argv[3]=="True" # bool
-vmec_res = sys.argv[4] # vmec input fidelity low, mid, high
-max_mode = int(sys.argv[5]) # max mode = 1,2,3,4,5...
+warm_start = sys.argv[2]=="True" # bool
+vmec_res = sys.argv[3] # vmec input fidelity low, mid, high
+max_mode = int(sys.argv[4]) # max mode = 1,2,3,4,5...
 
 assert max_mode <=5, "max mode out of range"
 assert vmec_res in ["low","mid","high"]
@@ -55,12 +54,17 @@ elif vmec_res == "high":
 # load the problem
 prob = qh_prob1.QHProb1(max_mode=max_mode,vmec_input = vmec_input,aspect_target = aspect_target)
 
+# output directory
+outputdir = "../data"
+if debug:
+  outputdir = "./data"
+
 if warm_start is True:
-  dir_list = ["../data"]
-  if debug:
-    dir_list = ["./data"]
-  # find a good starting point
-  x0 = find_warm_start(aspect_target,dir_list,thresh=5e-4)
+  # find a point on the pareto front
+  pareto_data = pickle.load(open(outputdir + "/pareto_optimal_points.pickle","rb"))
+  idx_start = np.argmin(np.abs(pareto_data['FX'][:,0] - aspect_target))
+  x0 = np.copy(pareto_data['X'][idx_start])
+  del pareto_data
   # convert to higher dimension representation
   x0 = prob.increase_dimension(x0,max_mode)
   # reset just to be sure
