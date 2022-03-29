@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import pickle
 import glob 
 
@@ -8,12 +9,13 @@ def find_warm_start(aspect_target,dir_list,thresh =5e-4):
   filelist = []
   # find files
   for dd in dir_list:
-    filelist += glob.glob(dd+"/*.pickle")
+    filelist += glob.glob(dd+"/reduced*.pickle")
 
   # read data
   X = []
   QX = []
   for ff in filelist:
+    # skip some files
     indata = pickle.load(open(ff,"rb"))
     xopt = indata['xopt']
     asp = indata['aspect_opt']
