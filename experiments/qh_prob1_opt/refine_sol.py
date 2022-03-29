@@ -213,7 +213,7 @@ if master:
   outdata['dim_x'] = dim_x
   outdata['max_mode'] = max_mode
   outdata['xopt'] = xopt
-  outdata['lamopt'] = lamopt # lagrange multiplier
+  outdata['lam'] = lamopt # lagrange multiplier
   outdata['rawopt'] = rawopt
   outdata['qs_mse_opt'] = qs_mse_opt
   outdata['aspect_opt'] = aspect_opt
