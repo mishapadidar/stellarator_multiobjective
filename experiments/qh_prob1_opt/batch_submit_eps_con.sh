@@ -1,5 +1,5 @@
 
-ASPECTS=('3.75' '10.05' '9.9') 
+ASPECTS=('6.1') 
 #ASPECTS=('3.0' '3.5' '3.75' '4.5' '5.0' '5.5' '6.0' '6.5' '7.0' '7.5' '8.0' '8.5' '9.0' '9.5' '10.0') 
 warm="True"
 vmec="high" # use high for aspect < 4.5, and when singular jacobians appear.
@@ -15,9 +15,6 @@ do
 
   # copy the penalty method
   cp "./eps_con.py" "_batch_aspect_${aspect}/eps_con.py"
-
-  # copy the warm start script
-  cp "./find_warm_start.py" "_batch_aspect_${aspect}/find_warm_start.py"
 
   # write the run file
   RUN="_batch_aspect_${aspect}/run.sh"

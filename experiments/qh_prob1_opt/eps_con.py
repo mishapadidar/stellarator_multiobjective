@@ -15,7 +15,6 @@ import qh_prob1
 from eval_wrapper import eval_wrapper
 #from gradient_descent import GD
 from gauss_newton import GaussNewton
-from find_warm_start import find_warm_start
 from block_coordinate_gauss_newton import BlockCoordinateGaussNewton
 
 """
