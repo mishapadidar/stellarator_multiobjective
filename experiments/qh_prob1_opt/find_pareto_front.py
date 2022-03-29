@@ -16,12 +16,29 @@ def find_pareto_front(datadir,save=False):
   """
 
   filelist = glob.glob(datadir +"/data*.pickle")
+  filelist.sort()
 
-  # read data
-  X = []
-  aspect_list = np.zeros(0)
-  qs_list  = np.zeros(0)
+  outfilename = datadir + "/pareto_optimal_points.pickle"
+  if os.path.exists(outfilename):
+    indata = pickle.load(open(outfilename,"rb"))
+    X = indata['X']
+    FX = indata['FX']
+    aspect_list = np.copy(FX[:,0])
+    qs_list = np.copy(FX[:,1])
+    processed = indata['filelist']
+  else:
+    X = []
+    aspect_list = np.zeros(0)
+    qs_list  = np.zeros(0)
+    processed = []
+
   for ff in filelist:
+
+    if ff in processed:
+      continue
+    else:
+      processed.append(ff)
+
     # load data
     print('loading',ff)
     indata = pickle.load(open(ff,"rb"))
@@ -45,11 +62,12 @@ def find_pareto_front(datadir,save=False):
     FX = FX[idx_pareto]
     X  = [X[ii] for ii in idx_pareto]
 
-  if save:
-    outdata = {}
-    outdata['X'] = X
-    outdata['FX'] = FX
-    pickle.dump(outdata,open(datadir + "/pareto_optimal_points.pickle","wb"))
+    if save:
+      outdata = {}
+      outdata['X'] = X
+      outdata['FX'] = FX
+      outdata['filelist'] = processed
+      pickle.dump(outdata,open(datadir + "/pareto_optimal_points.pickle","wb"))
   return X,FX
 
 
