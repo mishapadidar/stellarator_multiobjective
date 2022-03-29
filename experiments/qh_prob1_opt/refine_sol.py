@@ -126,7 +126,8 @@ def LagrangeGradient(yy,h=1e-7):
   xx = np.copy(yy[:-1])
   lam = yy[-1]
   # gradients
-  raw = prob.raw(xx)
+  #raw = prob.raw(xx)
+  raw = func_wrap(xx)
   global jac_reuse
   jac_reuse = prob.jacp_residuals(xx,h=h)
   grad_qs = (2/prob.n_qs_residuals)*jac_reuse[:-1].T @ raw[:-1]
@@ -152,6 +153,8 @@ def LagrangeHessian(yy,h=1e-5):
   dim_y = len(yy)
   xx = np.copy(yy[:-1])
   lam = yy[-1]
+  if master:
+    print("computing hessian")
 
   # reuse the jacobian
   grad_asp = jac_reuse[-1]
