@@ -187,8 +187,8 @@ def JacPenaltyResiduals(xx,idx=range(dim_x),h=1e-7):
   # save the evals
   Fp[:,-1] += aspect_target
   # dont save the center point b/c it has already been saved
-  func_wrap.X = np.append(func_wrap.X,Ep[:-1],axis=0)
-  func_wrap.FX = np.append(func_wrap.FX,Fp[:-1],axis=0)
+  #func_wrap.X = np.append(func_wrap.X,Ep[:-1],axis=0)
+  #func_wrap.FX = np.append(func_wrap.FX,Fp[:-1],axis=0)
   # make sure to take gradient of max
   asp = prob.aspect(xx)
   if asp -aspect_target <= 0.0:
@@ -237,12 +237,8 @@ for ii in range(max_solves):
   aspect_opt = rawopt[-1]
   
   # compute the lagrange multiplier
-  if np.abs(copt) <= ctol: # active constraint
-    lam = max(-(grad_qs @ grad_asp)/(grad_asp @ grad_asp),0.0)
-    stat_cond = np.linalg.norm(grad_qs + lam*grad_asp)
-  else: 
-    lam = 0.0 # inactive constraint
-    stat_cond = np.linalg.norm(grad_qs)
+  lam = max(-(grad_qs @ grad_asp)/(grad_asp @ grad_asp),0.0)
+  stat_cond = np.linalg.norm(grad_qs + lam*grad_asp)
   # check KKT conditions
   if copt <= ctol and stat_cond <=kkt_tol:
     KKT = True
