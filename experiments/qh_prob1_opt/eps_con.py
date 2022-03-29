@@ -42,6 +42,7 @@ warm_start = sys.argv[3]=="True" # bool
 vmec_res = sys.argv[4] # vmec input fidelity low, mid, high
 max_mode = int(sys.argv[5]) # max mode = 1,2,3,4,5...
 
+assert max_mode <=5, "max mode out of range"
 assert vmec_res in ["low","mid","high"]
 if vmec_res == "low":
   vmec_input = "../../../problem/input.nfp4_QH_warm_start"
@@ -97,11 +98,11 @@ if master:
   print(f"Starting with qs mse {qs_mse0} and aspect {aspect0}.")
 
 max_iter = 100 # evals per iteration
-ftarget  = 1e-9
-ftol_abs = ftarget/1000.0
+ftarget  = 1e-10
+ftol_abs = ftarget*1e-5
 kkt_tol  = 1e-7 
 max_solves = 4 # number of penalty updates
-pen0    = 1000 # initial penalty param.
+pen0    = 1e4 # initial penalty param.
 pen_inc = 10.0 # increase parameter
 ctol    = 1e-6 # target constraint tolerance
 block_size = prob.mpi.ngroups # block size
@@ -186,8 +187,8 @@ def JacPenaltyResiduals(xx,idx=range(dim_x),h=1e-7):
   # save the evals
   Fp[:,-1] += aspect_target
   # dont save the center point b/c it has already been saved
-  func_wrap.X = np.append(func_wrap.X,Ep[:-1],axis=0)
-  func_wrap.FX = np.append(func_wrap.FX,Fp[:-1],axis=0)
+  #func_wrap.X = np.append(func_wrap.X,Ep[:-1],axis=0)
+  #func_wrap.FX = np.append(func_wrap.FX,Fp[:-1],axis=0)
   # make sure to take gradient of max
   asp = prob.aspect(xx)
   if asp -aspect_target <= 0.0:
@@ -236,12 +237,8 @@ for ii in range(max_solves):
   aspect_opt = rawopt[-1]
   
   # compute the lagrange multiplier
-  if np.abs(copt) <= ctol: # active constraint
-    lam = max(-(grad_qs @ grad_asp)/(grad_asp @ grad_asp),0.0)
-    stat_cond = np.linalg.norm(grad_qs + lam*grad_asp)
-  else: 
-    lam = 0.0 # inactive constraint
-    stat_cond = np.linalg.norm(grad_qs)
+  lam = max(-(grad_qs @ grad_asp)/(grad_asp @ grad_asp),0.0)
+  stat_cond = np.linalg.norm(grad_qs + lam*grad_asp)
   # check KKT conditions
   if copt <= ctol and stat_cond <=kkt_tol:
     KKT = True
@@ -275,6 +272,8 @@ for ii in range(max_solves):
     outdata['RawX'] = func_wrap.FX
     outdata['pen_param'] = pen_param
     outdata['KKT'] = KKT
+    outdata['kkt_tol'] = kkt_tol
+    outdata['stationary_condition'] = stat_cond
     outdata['lam'] = lam # lagrange multiplier
     outdata['grad_qs'] = grad_qs
     outdata['grad_aspect'] = grad_asp
