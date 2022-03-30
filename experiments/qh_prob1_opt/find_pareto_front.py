@@ -7,19 +7,22 @@ import sys
 sys.path.append("../../utils")
 from is_pareto_efficient import is_pareto_efficient
 
-def find_pareto_front(datadir,save=False):
+def find_pareto_front(datadir,save=True,from_scratch=True):
   """
   Find the pareto front over a given set of files. 
 
   datadir: directory holding the pickle files
            should be formatted as i.e. "./data"
+  save: save the pareto front data
+  from_scratch: compute the pareto front from scratch. Use this
+   if you have overwritten any old files.
   """
 
   filelist = glob.glob(datadir +"/data*.pickle")
   filelist.sort()
 
   outfilename = datadir + "/pareto_optimal_points.pickle"
-  if os.path.exists(outfilename):
+  if os.path.exists(outfilename) and from_scratch is False:
     indata = pickle.load(open(outfilename,"rb"))
     X = indata['X']
     FX = indata['FX']
@@ -72,4 +75,4 @@ def find_pareto_front(datadir,save=False):
 
 
 if __name__=="__main__":
-  print(find_pareto_front("./data",save=True))
+  print(find_pareto_front("./data",save=True,from_scratch=True))
