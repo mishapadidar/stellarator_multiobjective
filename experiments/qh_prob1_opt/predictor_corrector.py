@@ -1,6 +1,6 @@
 import numpy as np
 import pickle
-from func_tools import partial
+from functools import partial
 from datetime import datetime
 import sys
 sys.path.append("../../../utils")
@@ -16,7 +16,6 @@ import qh_prob1
 from finite_difference import finite_difference_hessian
 from eval_wrapper import eval_wrapper
 from newton_linesearch import NewtonLinesearch
-from find_warm_start import find_warm_start
 
 """
 Predictor corrector method for expanding the pareto front of
@@ -36,7 +35,7 @@ If you would like to run this at the command line set `debug=True`.
 #####
 
 # choose stopping criteria
-max_iter = 30 # evals per iteration
+max_iter = 1 # evals per iteration
 kkt_tol  = 1e-8
 # set target step size
 aspect_step = 0.05 
@@ -97,7 +96,7 @@ global x_stored
 global raw_stored
 global jac_stored
 x_stored = np.copy(x0)
-raw_stored = np.copy(prob.raw(x0)))
+raw_stored = np.copy(prob.raw(x0))
 jac_stored = np.copy(prob.jacp_residuals(x0))
 
 # initial objective values
@@ -109,10 +108,18 @@ grad_qs = (2/prob.n_qs_residuals)*jac_stored[:-1].T @ raw_stored[:-1]
 grad_asp = jac_stored[-1]
 lam0 = -grad_qs @ grad_asp/(grad_asp @ grad_asp)
 
+# define targets
+initial_target = np.array([aspect0,qs_mse0])
+new_target = initial_target - np.array([aspect_step,qs_mse_step])
+aspect_target = new_target[0]
+qs_mse_target = new_target[1]
+
 if master:
   print('')
   print('initial qs_mse',qs_mse0)
   print('initial aspect',aspect0)
+  print('qs_mse target', qs_mse_target)
+  print('aspect target', aspect_target)
   print('initial stationary condition: ',np.linalg.norm(grad_qs + lam0*grad_asp))
   print('initial |qs grad|: ',np.linalg.norm(grad_qs))
   print('initial |aspect grad|: ',np.linalg.norm(grad_asp))
@@ -148,11 +155,12 @@ def Gradient(xx,aspect_target=aspect0,qs_mse_target=qs_mse0):
   Gradient of sum of squares function 
     G = 2*(A-A_target)*grad(A) + 2*(Q-Q_target)*grad(Q)
   """
+  global x_stored
+  global raw_stored
+  global jac_stored
+
   # only evaluate if necessary
   if np.any(xx != x_stored):
-    global x_stored
-    global raw_stored
-    global jac_stored
     x_stored = np.copy(xx)
     raw_stored = np.copy(prob.raw(xx))
     jac_stored = np.copy(prob.jacp_residuals(xx))
@@ -187,11 +195,12 @@ def ApproximateHessian(xx,aspect_target=aspect0,qs_mse_target=qs_mse0):
     H = 2*outer(grad(A),grad(A)) + 2*outer(grad(Q),grad(Q)) 
         + (4/n_qs_residuals)*(Q - Q_target)*(J_q)^T(J_q)
   """
+  global x_stored
+  global raw_stored
+  global jac_stored
+
   # only evaluate if necessary
   if np.any(xx != x_stored):
-    global x_stored
-    global raw_stored
-    global jac_stored
     x_stored = np.copy(xx)
     raw_stored = np.copy(prob.raw(xx))
     jac_stored = np.copy(prob.jacp_residuals(xx))
@@ -204,7 +213,7 @@ def ApproximateHessian(xx,aspect_target=aspect0,qs_mse_target=qs_mse0):
   grad_aspect = jac_stored[-1]
 
   # TODO: include diagonal hessian approximation for aspect
-  H = 2*np.outer(grad_aspect,grad_aspect) + 2*np.outer(grad_qs_mse,grad_qs_mse)\ 
+  H = 2*np.outer(grad_aspect,grad_aspect) + 2*np.outer(grad_qs_mse,grad_qs_mse)\
       + (4/prob.n_qs_residuals)*(qs_mse - qs_mse_target)*jac_stored[:-1].T @ jac_stored[:-1]
   return np.copy(H)
 
@@ -239,11 +248,12 @@ def PredictorStep(xx,target_xx,target_new):
   return:
   yy: (dim_x,) array, an estimate of the solution of (star) with respect to target
   """
+  global x_stored
+  global raw_stored
+  global jac_stored
+
   # only evaluate if necessary
   if np.any(xx != x_stored):
-    global x_stored
-    global raw_stored
-    global jac_stored
     x_stored = np.copy(xx)
     raw_stored = np.copy(prob.raw(xx))
     jac_stored = np.copy(prob.jacp_residuals(xx))
@@ -254,7 +264,7 @@ def PredictorStep(xx,target_xx,target_new):
   # compute the jacobian
   grad_qs_mse = (2/prob.n_qs_residuals)*jac_stored[:-1].T @ raw_stored[:-1]
   grad_aspect = jac_stored[-1]
-  J = np.vstack(grad_aspect,grad_qs_mse) # rows are gradients (2,dim_x)
+  J = np.vstack((grad_aspect,grad_qs_mse)) # rows are gradients (2,dim_x)
   
   # compute prediction
   yy = xx + np.linalg.solve(R, Q.T @ J.T @ (target_new-target_xx))
@@ -263,12 +273,6 @@ def PredictorStep(xx,target_xx,target_new):
 #####
 ## do the predictor step
 #####
-
-# define targets
-initial_target = np.array([aspect0,qs_mse0])
-new_target = initial_target - np.array([aspect_step,qs_mse_step])
-aspect_target = new_target[1]
-qs_mse_target = new_target[1]
 
 if master:
   print("")
