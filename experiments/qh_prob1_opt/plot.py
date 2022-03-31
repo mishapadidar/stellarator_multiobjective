@@ -3,7 +3,7 @@ import glob
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
 import matplotlib
-#matplotlib.use('TkAgg')
+matplotlib.use('TkAgg')
 import pickle
 import sys
 sys.path.append("../../utils")
