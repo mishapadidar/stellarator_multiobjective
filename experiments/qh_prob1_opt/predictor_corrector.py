@@ -35,12 +35,12 @@ If you would like to run this at the command line set `debug=True`.
 #####
 
 # choose stopping criteria
-max_iter = 30 # evals per iteration
+max_iter = 50 # evals per iteration
 kkt_tol  = 1e-8
-n_solves = 2 # number of predictor corrector solves
-# set target step size
-aspect_step = 0.05 
-qs_mse_step = 0.0 
+n_solves = 10 # number of predictor corrector solves
+# target step sizes. Only one will be chosen based off of direction
+aspect_step = 0.05 # positive
+qs_mse_step = 5e-10 # positive
 
 # output dir
 outputdir = "../data"
@@ -51,6 +51,14 @@ if debug:
 aspect_init = float(sys.argv[1])  # positive float
 vmec_res = sys.argv[2] # vmec input fidelity low, mid, high
 max_mode = int(sys.argv[3]) # max mode = 1,2,3,4,5...
+direction = sys.argv[4] # left or right
+
+# set direction of motion
+assert direction in ['left','right']
+if direction == 'left':
+  qs_mse_step = 0.0
+elif direction == 'right':
+  aspect_step = 0.0
 
 assert max_mode <=5, "max mode out of range"
 assert vmec_res in ["low","mid","high"]
