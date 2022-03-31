@@ -320,7 +320,7 @@ def set_target(xx,lam_xx,aspect_step,qs_mse_xx,aspect_xx):
   qs_mse_xx: the qs_mse at xx
   aspect_xx: the aspect at xx
 
-  WARNING: negative lagrange multipliers will cause the target to 
+  WARNING: positive lagrange multipliers will cause the target to 
   be set in the opposite direction.
   """
   qs_mse_step = - lam_xx*aspect_step
