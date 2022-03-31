@@ -320,9 +320,14 @@ def set_target(xx,lam_xx,aspect_step,qs_mse_xx,aspect_xx):
   qs_mse_xx: the qs_mse at xx
   aspect_xx: the aspect at xx
 
-  WARNING: positive lagrange multipliers will cause the target to 
+  WARNING: negative lagrange multipliers will cause the target to 
   be set in the opposite direction.
   """
+  if lam_xx < 0.0:
+    # protect against negative lagrange multipliers
+    qs_target_dec = 0.1*qs_mse_xx
+    target_k = np.array([aspect_xx,qs_target_dec])
+    return target_k
   qs_mse_step = - lam_xx*aspect_step
   tang_point = np.array([aspect_xx,qs_mse_xx]) + np.array([aspect_step,qs_mse_step])
   qs_mse_frac = 0.5 # fraction of qs_mse to decrease along normal step
