@@ -118,14 +118,15 @@ lam = -grad_qs @ grad_asp/(grad_asp @ grad_asp)
 
 if master:
   print('')
-  print('initial aspect',aspect0)
-  print('initial qs_mse',qs_mse0)
-  print('initial lam', lam)
+  print('direction:',direction)
+  print('initial aspect:',aspect0)
+  print('initial qs_mse:',qs_mse0)
+  print('initial lam:', lam)
   print('initial stationary condition: ',np.linalg.norm(grad_qs + lam*grad_asp))
   print('initial |qs grad|: ',np.linalg.norm(grad_qs))
   print('initial |aspect grad|: ',np.linalg.norm(grad_asp))
   print('')
-  print('aspect_step size',aspect_step_size)
+  print('aspect_step size:',aspect_step_size)
 
 # set outfile
 now     = datetime.now()
@@ -180,7 +181,7 @@ def Gradient(xx,aspect_target=aspect0,qs_mse_target=qs_mse0):
 
   stat_cond = np.linalg.norm(grad)
   if master:
-    print('stat_cond',stat_cond)
+    print('subproblem statationary cond:',stat_cond)
   return np.copy(grad)
 
 def ApproximateHessian(xx,aspect_target=aspect0,qs_mse_target=qs_mse0):
@@ -310,14 +311,27 @@ def PredictorStep(xx,target_xx,target_new):
 # run predictor/corrector iteration
 #####
 
-# WARNING: negative lagrange multipliers will cause the target to 
-# be set in the opposite direction.
-# set initial target based on the tangent
-qs_mse_step = - lam*aspect_step
-tang_point = np.array([aspect0,qs_mse0]) + np.array([aspect_step,qs_mse_step])
-qs_mse_frac = 0.5 # fraction of qs_mse to decrease along normal step
-normal_step = np.array([qs_mse0*lam*qs_mse_frac,qs_mse0*qs_mse_frac])
-target_k = tang_point - normal_step
+def set_target(xx,lam_xx,aspect_step,qs_mse_xx,aspect_xx):
+  """ 
+  Set the target point.
+  xx: point on the pareto front
+  lam_xx: lagrange multiplier satisfying pareto stationary condition
+  aspect_step: step size to take along aspect ratio
+  qs_mse_xx: the qs_mse at xx
+  aspect_xx: the aspect at xx
+
+  WARNING: negative lagrange multipliers will cause the target to 
+  be set in the opposite direction.
+  """
+  qs_mse_step = - lam_xx*aspect_step
+  tang_point = np.array([aspect_xx,qs_mse_xx]) + np.array([aspect_step,qs_mse_step])
+  qs_mse_frac = 0.5 # fraction of qs_mse to decrease along normal step
+  normal_step = np.array([qs_mse_xx*lam_xx*qs_mse_frac,qs_mse_xx*qs_mse_frac])
+  # set initial target based on the tangent
+  target_k = tang_point - normal_step
+  return target_k
+
+target_k = set_target(x0,lam,aspect_step,qs_mse0,aspect0)
 aspect_target = target_k[0]
 qs_mse_target = target_k[1]
 
@@ -326,11 +340,9 @@ for ii in range(n_solves):
   if master:
     print("")
     print("="*80)
-    print('iteration',ii)
-    print('aspect_step',aspect_step)
-    print('qs_mse_step',qs_mse_step)
-    print('aspect_target',aspect_target)
-    print('qs_mse_target',qs_mse_target)
+    print('iteration)',ii)
+    print('aspect_target:',aspect_target)
+    print('qs_mse_target:',qs_mse_target)
     print("")
     print("running newton method")
     print(f"for {max_iter} steps or kkt_tol {kkt_tol}")
@@ -358,17 +370,16 @@ for ii in range(n_solves):
 
   if master:
     print("")
-    print('optimal qs mse:',qs_mse_opt)
-    print('aspect',aspect_opt)
-    print('optimal con:',copt)
+    print("Optimized result:")
+    print('aspect:',aspect_opt)
+    print('qs mse:',qs_mse_opt)
+    print('|aspect-aspect_target|:',np.abs(aspect_opt - aspect_target))
+    print('|qs_mse-qs_mse_target|:',np.abs(qs_mse_opt - qs_mse_target))
+    print('pareto stationary condition: ',stat_cond)
     print('lagrange multiplier: ',lam)
-    print('norm stationary cond: ',stat_cond)
 
   # set a new target
-  qs_mse_step = - lam*aspect_step
-  tang_point = np.array([aspect_opt,qs_mse_opt]) + np.array([aspect_step,qs_mse_step])
-  normal_step = np.array([qs_mse0*lam*qs_mse_frac,qs_mse0*qs_mse_frac])
-  target_kp1 = tang_point - normal_step
+  target_kp1 = set_target(xopt,lam,aspect_step,qs_mse_opt,aspect_opt)
 
   # compute predictor step
   x_kp1 = PredictorStep(xopt,target_k,target_kp1)
@@ -377,7 +388,9 @@ for ii in range(n_solves):
   if master:
     print("")
     print("Predictor step")
-    print("New Target",target_kp1)
+    print("new aspect_target:",target_kp1[0])
+    print("new qs_mse_target:",target_kp1[1])
+    print("evaluating prediction:")
     sys.stdout.flush()
 
   # compute to print performance and save eval
