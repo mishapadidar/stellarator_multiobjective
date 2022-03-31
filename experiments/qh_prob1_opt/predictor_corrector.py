@@ -35,8 +35,9 @@ If you would like to run this at the command line set `debug=True`.
 #####
 
 # choose stopping criteria
-max_iter = 1 # evals per iteration
+max_iter = 30 # evals per iteration
 kkt_tol  = 1e-8
+n_solves = 2 # number of predictor corrector solves
 # set target step size
 aspect_step = 0.05 
 qs_mse_step = 0.0 
@@ -103,23 +104,15 @@ jac_stored = np.copy(prob.jacp_residuals(x0))
 qs_mse0 = np.mean(raw_stored[:-1]**2)
 aspect0 = raw_stored[-1]
 
-# check initial KKT conditions
+# compute initial KKT conditions
 grad_qs = (2/prob.n_qs_residuals)*jac_stored[:-1].T @ raw_stored[:-1]
 grad_asp = jac_stored[-1]
 lam0 = -grad_qs @ grad_asp/(grad_asp @ grad_asp)
 
-# define targets
-initial_target = np.array([aspect0,qs_mse0])
-new_target = initial_target - np.array([aspect_step,qs_mse_step])
-aspect_target = new_target[0]
-qs_mse_target = new_target[1]
-
 if master:
   print('')
-  print('initial qs_mse',qs_mse0)
   print('initial aspect',aspect0)
-  print('qs_mse target', qs_mse_target)
-  print('aspect target', aspect_target)
+  print('initial qs_mse',qs_mse0)
   print('initial stationary condition: ',np.linalg.norm(grad_qs + lam0*grad_asp))
   print('initial |qs grad|: ',np.linalg.norm(grad_qs))
   print('initial |aspect grad|: ',np.linalg.norm(grad_asp))
@@ -127,7 +120,7 @@ if master:
 # set outfile
 now     = datetime.now()
 barcode = "%d%.2d%.2d%.2d%.2d%.2d"%(now.year,now.month,now.day,now.hour,now.minute,now.second)
-outfilename = outputdir + f"/data_predcorr_aspect_{aspect_target}_{barcode}.pickle"
+outfilename = outputdir + f"/data_predcorr_aspect_{aspect_init}_{barcode}.pickle"
 
 #####
 ## define functions
@@ -179,6 +172,12 @@ def Gradient(xx,aspect_target=aspect0,qs_mse_target=qs_mse0):
 
 def ApproximateHessian(xx,aspect_target=aspect0,qs_mse_target=qs_mse0):
   """ 
+  WARNING: this hessian is only rank-2 if aspect=aspect_target and
+    qs_mse = qs_mse_target! This is a fundamental problem with the objective  
+    when using < dim_x residuals. 
+    The work around is to set the target values aggresively, so that
+    we cannot reach them.
+
   Approximate Hessian of sum of squares objective
   using Gauss Newton structure of the objective and Q.
   The exact hessian is 
@@ -211,10 +210,25 @@ def ApproximateHessian(xx,aspect_target=aspect0,qs_mse_target=qs_mse0):
   qs_mse = np.mean(raw_stored[:-1]**2)
   # compute grad(A)
   grad_aspect = jac_stored[-1]
+  # compute A
+  aspect = raw_stored[-1]
 
-  # TODO: include diagonal hessian approximation for aspect
+  # compute a diagonal hessian for aspect
+  hess_aspect = np.zeros(prob.dim_x)
+  h_fd = 1e-6
+  E = np.eye(prob.dim_x)
+  for jj in range(prob.dim_x):
+    # central difference
+    cd = prob.aspect(xx + h_fd*E[jj]) - 2*aspect + prob.aspect(xx - h_fd*E[jj])
+    cd = cd/h_fd/h_fd
+    hess_aspect[jj] = cd
+  hess_aspect = (aspect-aspect_target)*np.diag(hess_aspect)
+
+  # qs_mse hessian
+  hess_qs_mse = (2/prob.n_qs_residuals)*(qs_mse - qs_mse_target)*jac_stored[:-1].T @ jac_stored[:-1]
+
   H = 2*np.outer(grad_aspect,grad_aspect) + 2*np.outer(grad_qs_mse,grad_qs_mse)\
-      + (4/prob.n_qs_residuals)*(qs_mse - qs_mse_target)*jac_stored[:-1].T @ jac_stored[:-1]
+      + 2*hess_qs_mse + 2*hess_aspect
   return np.copy(H)
 
 def PredictorStep(xx,target_xx,target_new):
@@ -265,89 +279,115 @@ def PredictorStep(xx,target_xx,target_new):
   grad_qs_mse = (2/prob.n_qs_residuals)*jac_stored[:-1].T @ raw_stored[:-1]
   grad_aspect = jac_stored[-1]
   J = np.vstack((grad_aspect,grad_qs_mse)) # rows are gradients (2,dim_x)
+
+  # check the conditioning
+  hess_cond = np.linalg.cond(B)
+  if master:
+    print('Hessian condition number: ',hess_cond)
   
   # compute prediction
-  yy = xx + np.linalg.solve(R, Q.T @ J.T @ (target_new-target_xx))
+  if hess_cond < 1e14:
+    yy = xx + np.linalg.solve(R, Q.T @ J.T @ (target_new-target_xx))
+  else:
+    # if poorly conditioned just return xx 
+    yy = xx
   return np.copy(yy)
 
 #####
-## do the predictor step
+# run predictor/corrector iteration
 #####
 
-if master:
-  print("")
-  print("Predictor step")
-  print("New Target",new_target)
-  sys.stdout.flush()
+# set initial target
+target_k = np.array([aspect0,qs_mse0]) - np.array([aspect_step,qs_mse_step])
+aspect_target = target_k[0]
+qs_mse_target = target_k[1]
 
-# compute predictor step
-y0 = PredictorStep(x0,initial_target,new_target)
+x_k = np.copy(x0)
+for ii in range(n_solves):
+  if master:
+    print("")
+    print("="*80)
+    print('iteration',ii)
+    print('aspect_target',aspect_target)
+    print('qs_mse_target',qs_mse_target)
+    print("")
+    print("running newton method")
+    print(f"for {max_iter} steps or stationary target {kkt_tol}")
+    sys.stdout.flush()
+  
+  # wrap the functions
+  OptObjective = partial(Objective,**{'aspect_target':aspect_target,'qs_mse_target':qs_mse_target})
+  OptGradient = partial(Gradient,**{'aspect_target':aspect_target,'qs_mse_target':qs_mse_target})
+  OptHessian = partial(ApproximateHessian,**{'aspect_target':aspect_target,'qs_mse_target':qs_mse_target})
+  
+  # run the corrector
+  xopt = NewtonLinesearch(OptObjective,OptGradient,OptHessian,x_k,max_iter=max_iter,gtol=kkt_tol)
 
-# check objective and gradient
-Objective(y0,*new_target)
-Gradient(y0,*new_target)
+  # compute diagnostics
+  rawopt = prob.raw(xopt)
+  jacopt = prob.jacp_residuals(xopt)
+  grad_qs = (2/prob.n_qs_residuals)*jacopt[:-1].T @ rawopt[:-1]
+  grad_asp = jacopt[-1]
+  qs_mse_opt = np.mean(rawopt[:-1]**2)
+  aspect_opt = rawopt[-1]
+  copt = aspect_opt - aspect_target
+  # check pareto optimality conditions
+  lam = -(grad_qs @ grad_asp)/(grad_asp @ grad_asp)
+  stat_cond = np.linalg.norm(grad_qs + lam*grad_asp)
 
-#####
-## do the corrector step
-#####
+  if master:
+    print("")
+    print('optimal qs mse:',qs_mse_opt)
+    print('aspect',aspect_opt)
+    print('optimal con:',copt)
+    print('lagrange multiplier: ',lam)
+    print('norm stationary cond: ',stat_cond)
 
-if master:
-  print("")
-  print("Corrector Step")
-  print("Running newton method")
-  print(f"for {max_iter} steps or stationary target {kkt_tol}")
-  sys.stdout.flush()
+  # set a new target
+  target_kp1 = np.copy(target_k - np.array([aspect_step,qs_mse_step]))
 
-# wrap the functions
-OptObjective = partial(Objective,**{'aspect_target':aspect_target,'qs_mse_target':qs_mse_target})
-OptGradient = partial(Gradient,**{'aspect_target':aspect_target,'qs_mse_target':qs_mse_target})
-OptHessian = partial(ApproximateHessian,**{'aspect_target':aspect_target,'qs_mse_target':qs_mse_target})
+  # compute predictor step
+  x_kp1 = PredictorStep(xopt,target_k,target_kp1)
+  
+  # check objective and gradient
+  if master:
+    print("")
+    print("Predictor step")
+    print("New Target",target_kp1)
+    sys.stdout.flush()
 
-# run the corrector
-xopt = NewtonLinesearch(OptObjective,OptGradient,OptHessian,y0,max_iter=max_iter,gtol=kkt_tol)
+  # compute to print performance and save eval
+  Objective(x_kp1,*target_kp1)
+  Gradient(x_kp1,*target_kp1)
+  
+  if master:
+    # dump the evals at the end
+    print("")
+    print(f"Dumping data to {outfilename}")
+    outdata = {}
+    outdata['dim_x'] = dim_x
+    outdata['max_mode'] = max_mode
+    outdata['xopt'] = xopt
+    outdata['lam'] = lam # lagrange multiplier
+    outdata['rawopt'] = rawopt
+    outdata['qs_mse_opt'] = qs_mse_opt
+    outdata['aspect_opt'] = aspect_opt
+    outdata['copt'] = copt
+    outdata['aspect_target'] = aspect_target
+    outdata['qs_mse_target'] = aspect_target
+    outdata['jacopt'] = jacopt 
+    outdata['X'] = func_wrap.X
+    outdata['RawX'] = func_wrap.FX
+    outdata['kkt_tol'] = kkt_tol
+    outdata['stationary_condition'] = stat_cond
+    outdata['grad_aspect'] = grad_asp
+    if not debug:
+      pickle.dump(outdata,open(outfilename,"wb"))
 
-# compute diagnostics
-rawopt = prob.raw(xopt)
-jacopt = prob.jacp_residuals(xopt)
-grad_qs = (2/prob.n_qs_residuals)*jacopt[:-1].T @ rawopt[:-1]
-grad_asp = jacopt[-1]
-qs_mse_opt = np.mean(rawopt[:-1]**2)
-aspect_opt = rawopt[-1]
-copt = aspect_opt - aspect_target
-# check pareto optimality conditions
-lam = -(grad_qs @ grad_asp)/(grad_asp @ grad_asp)
-stat_cond = np.linalg.norm(grad_qs + lam*grad_asp)
-
-if master:
-  print("")
-  print('optimal qs mse:',qs_mse_opt)
-  print('aspect',aspect_opt)
-  print('optimal con:',copt)
-  print('lagrange multiplier: ',lam)
-  print('norm stationary cond: ',stat_cond)
-  sys.stdout.flush()
-
-  # dump the evals at the end
-  print("")
-  print(f"Dumping data to {outfilename}")
-  outdata = {}
-  outdata['dim_x'] = dim_x
-  outdata['max_mode'] = max_mode
-  outdata['xopt'] = xopt
-  outdata['lam'] = lam # lagrange multiplier
-  outdata['rawopt'] = rawopt
-  outdata['qs_mse_opt'] = qs_mse_opt
-  outdata['aspect_opt'] = aspect_opt
-  outdata['copt'] = copt
-  outdata['aspect_target'] = aspect_target
-  outdata['qs_mse_target'] = aspect_target
-  outdata['jacopt'] = jacopt 
-  outdata['X'] = func_wrap.X
-  outdata['RawX'] = func_wrap.FX
-  outdata['kkt_tol'] = kkt_tol
-  outdata['stationary_condition'] = stat_cond
-  outdata['grad_aspect'] = grad_asp
-  if not debug:
-    pickle.dump(outdata,open(outfilename,"wb"))
+  # reset for next iteration
+  x_k = np.copy(x_kp1)
+  target_k = np.copy(target_kp1)
+  aspect_target = target_k[0]
+  qs_mse_target = target_k[1]
   
 
