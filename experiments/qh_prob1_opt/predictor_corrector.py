@@ -310,10 +310,13 @@ def PredictorStep(xx,target_xx,target_new):
 # run predictor/corrector iteration
 #####
 
+# WARNING: negative lagrange multipliers will cause the target to 
+# be set in the opposite direction.
 # set initial target based on the tangent
 qs_mse_step = - lam*aspect_step
 tang_point = np.array([aspect0,qs_mse0]) + np.array([aspect_step,qs_mse_step])
-normal_step = np.array([qs_mse0*lam/2,qs_mse0/2])
+qs_mse_frac = 0.5 # fraction of qs_mse to decrease along normal step
+normal_step = np.array([qs_mse0*lam*qs_mse_frac,qs_mse0*qs_mse_frac])
 target_k = tang_point - normal_step
 aspect_target = target_k[0]
 qs_mse_target = target_k[1]
@@ -364,7 +367,7 @@ for ii in range(n_solves):
   # set a new target
   qs_mse_step = - lam*aspect_step
   tang_point = np.array([aspect_opt,qs_mse_opt]) + np.array([aspect_step,qs_mse_step])
-  normal_step = np.array([qs_mse_opt*lam/2,qs_mse_opt/2])
+  normal_step = np.array([qs_mse0*lam*qs_mse_frac,qs_mse0*qs_mse_frac])
   target_kp1 = tang_point - normal_step
 
   # compute predictor step
