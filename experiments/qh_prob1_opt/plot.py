@@ -13,7 +13,7 @@ from is_pareto_efficient import is_pareto_efficient
 plot QS^2 error via aspect
 """
 
-plot_all_optima = True
+plot_all_optima = False
 if plot_all_optima:
   filelist = glob.glob("./data/data*.pickle")
   aspect_list = np.zeros(0)
@@ -33,11 +33,13 @@ aspect_pareto = np.copy(FX_pareto[:,0])
 qs_pareto = np.copy(FX_pareto[:,1])
 
 # plot
-plt.scatter(aspect_list,qs_list,alpha=0.5)
+if plot_all_optima:
+  plt.scatter(aspect_list,qs_list,alpha=0.5)
 plt.scatter(aspect_pareto,qs_pareto,s=20,color='r',label='pareto')
 plt.xlabel('aspect ratio')
 plt.ylabel('Quasisymmetry MSE')
 plt.yscale('log')
+plt.legend()
 plt.show()
   
 
