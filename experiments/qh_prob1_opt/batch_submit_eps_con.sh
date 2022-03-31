@@ -1,5 +1,5 @@
 
-ASPECTS=('6.1') 
+ASPECTS=('8.75' '8.8' '9.1' '9.2') 
 #ASPECTS=('3.0' '3.5' '3.75' '4.5' '5.0' '5.5' '6.0' '6.5' '7.0' '7.5' '8.0' '8.5' '9.0' '9.5' '10.0') 
 warm="True"
 vmec="high" # use high for aspect < 4.5, and when singular jacobians appear.
@@ -50,6 +50,6 @@ do
   cd ..
 
   ## sleep to prevent job clashes
-  sleep 3
+  #sleep 3
 done
 
