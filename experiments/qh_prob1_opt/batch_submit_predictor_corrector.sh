@@ -1,10 +1,9 @@
 
-ASPECTS=('5.075' '8.0' '8.3' '4.95') # for moving left
-#ASPECTS=('4.4' '6.2' '8.7') # for moving right
+#ASPECTS=('5.075' '8.0' '8.3' '4.95') # for moving left
+ASPECTS=('4.4' '6.2' '8.7') # for moving right
 vmec="high" # use high for aspect < 4.5, and when singular jacobians appear.
 maxmode=5
-# TODO: Dont go right! need to stabilize objective for moving right!
-direction="left"
+direction="right"
 NODES=1
 CORES=12
 for idx in ${!ASPECTS[@]}

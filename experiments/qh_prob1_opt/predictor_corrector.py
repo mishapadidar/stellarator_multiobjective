@@ -38,9 +38,8 @@ If you would like to run this at the command line set `debug=True`.
 max_iter = 50 # evals per iteration
 kkt_tol  = 1e-8
 n_solves = 10 # number of predictor corrector solves
-# target step sizes. Only one will be chosen based off of direction
-aspect_step = 0.05 # positive
-qs_mse_step = 5e-10 # positive
+# rough step size
+aspect_step_size = 0.05 # positive
 
 # output dir
 outputdir = "../data"
@@ -53,17 +52,12 @@ vmec_res = sys.argv[2] # vmec input fidelity low, mid, high
 max_mode = int(sys.argv[3]) # max mode = 1,2,3,4,5...
 direction = sys.argv[4] # left or right
 
-# rescale the qs_mse to prevent ill conditioning of the objective
-qs_mse_scale = 1.0/qs_mse_step
-
-# TODO: stabilize the objective so we can search to the right!
-# TODO: perhaps just dont set aspect_step=0 when moving right.
 # set direction of motion
 assert direction in ['left','right']
 if direction == 'left':
-  qs_mse_step = 0.0
+  aspect_step = -aspect_step_size
 elif direction == 'right':
-  aspect_step = 0.0
+  aspect_step = aspect_step_size
 
 assert max_mode <=5, "max mode out of range"
 assert vmec_res in ["low","mid","high"]
@@ -120,18 +114,18 @@ aspect0 = raw_stored[-1]
 # compute initial KKT conditions
 grad_qs = (2/prob.n_qs_residuals)*jac_stored[:-1].T @ raw_stored[:-1]
 grad_asp = jac_stored[-1]
-lam0 = -grad_qs @ grad_asp/(grad_asp @ grad_asp)
+lam = -grad_qs @ grad_asp/(grad_asp @ grad_asp)
 
 if master:
   print('')
   print('initial aspect',aspect0)
   print('initial qs_mse',qs_mse0)
-  print('initial stationary condition: ',np.linalg.norm(grad_qs + lam0*grad_asp))
+  print('initial lam', lam)
+  print('initial stationary condition: ',np.linalg.norm(grad_qs + lam*grad_asp))
   print('initial |qs grad|: ',np.linalg.norm(grad_qs))
   print('initial |aspect grad|: ',np.linalg.norm(grad_asp))
   print('')
-  print('aspect_step',aspect_step)
-  print('qs_mse_step',qs_mse_step)
+  print('aspect_step size',aspect_step_size)
 
 # set outfile
 now     = datetime.now()
@@ -144,6 +138,9 @@ outfilename = outputdir + f"/data_predcorr_aspect_{aspect_init}_{barcode}.pickle
 
 # wrap the raw objective
 func_wrap = eval_wrapper(prob.raw,prob.dim_x,prob.n_qs_residuals+1)
+
+# rescale the qs_mse to prevent ill conditioning of the objective
+qs_mse_scale = 1.0/qs_mse0
 
 def Objective(xx,aspect_target=aspect0,qs_mse_target=qs_mse0):
   """ Sum of squares (A-A_target)**2 + (Q-Q_target)**2 """
@@ -313,8 +310,11 @@ def PredictorStep(xx,target_xx,target_new):
 # run predictor/corrector iteration
 #####
 
-# set initial target
-target_k = np.array([aspect0,qs_mse0]) - np.array([aspect_step,qs_mse_step])
+# set initial target based on the tangent
+qs_mse_step = - lam*aspect_step
+tang_point = np.array([aspect0,qs_mse0]) + np.array([aspect_step,qs_mse_step])
+normal_step = np.array([qs_mse0*lam/2,qs_mse0/2])
+target_k = tang_point - normal_step
 aspect_target = target_k[0]
 qs_mse_target = target_k[1]
 
@@ -324,6 +324,8 @@ for ii in range(n_solves):
     print("")
     print("="*80)
     print('iteration',ii)
+    print('aspect_step',aspect_step)
+    print('qs_mse_step',qs_mse_step)
     print('aspect_target',aspect_target)
     print('qs_mse_target',qs_mse_target)
     print("")
@@ -360,7 +362,10 @@ for ii in range(n_solves):
     print('norm stationary cond: ',stat_cond)
 
   # set a new target
-  target_kp1 = np.copy(target_k - np.array([aspect_step,qs_mse_step]))
+  qs_mse_step = - lam*aspect_step
+  tang_point = np.array([aspect_opt,qs_mse_opt]) + np.array([aspect_step,qs_mse_step])
+  normal_step = np.array([qs_mse_opt*lam/2,qs_mse_opt/2])
+  target_kp1 = tang_point - normal_step
 
   # compute predictor step
   x_kp1 = PredictorStep(xopt,target_k,target_kp1)
