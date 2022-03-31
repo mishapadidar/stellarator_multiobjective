@@ -75,4 +75,4 @@ def find_pareto_front(datadir,save=True,from_scratch=True):
 
 
 if __name__=="__main__":
-  print(find_pareto_front("./data",save=True,from_scratch=True))
+  find_pareto_front("./data",save=True,from_scratch=False)
