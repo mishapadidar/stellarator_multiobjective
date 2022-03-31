@@ -53,6 +53,11 @@ vmec_res = sys.argv[2] # vmec input fidelity low, mid, high
 max_mode = int(sys.argv[3]) # max mode = 1,2,3,4,5...
 direction = sys.argv[4] # left or right
 
+# rescale the qs_mse to prevent ill conditioning of the objective
+qs_mse_scale = 1.0/qs_mse_step
+
+# TODO: stabilize the objective so we can search to the right!
+# TODO: perhaps just dont set aspect_step=0 when moving right.
 # set direction of motion
 assert direction in ['left','right']
 if direction == 'left':
@@ -124,6 +129,9 @@ if master:
   print('initial stationary condition: ',np.linalg.norm(grad_qs + lam0*grad_asp))
   print('initial |qs grad|: ',np.linalg.norm(grad_qs))
   print('initial |aspect grad|: ',np.linalg.norm(grad_asp))
+  print('')
+  print('aspect_step',aspect_step)
+  print('qs_mse_step',qs_mse_step)
 
 # set outfile
 now     = datetime.now()
@@ -146,7 +154,7 @@ def Objective(xx,aspect_target=aspect0,qs_mse_target=qs_mse0):
     raw = func_wrap(xx)
   qs_mse = np.mean(raw[:-1]**2)
   aspect = raw[-1]
-  ret = (aspect-aspect_target)**2 + (qs_mse - qs_mse_target)**2
+  ret = (aspect-aspect_target)**2 + (np.sqrt(qs_mse_scale)*(qs_mse - qs_mse_target))**2
   if master:
     print(f'f(x): {ret}, qs mse: {qs_mse}, aspect: {aspect}')
   return ret
@@ -171,7 +179,7 @@ def Gradient(xx,aspect_target=aspect0,qs_mse_target=qs_mse0):
   qs_mse = np.mean(raw_stored[:-1]**2)
   aspect = raw_stored[-1]
   grad_aspect = jac_stored[-1]
-  grad = 2*(aspect - aspect_target)*grad_aspect + 2*(qs_mse - qs_mse_target)*grad_qs_mse
+  grad = 2*(aspect - aspect_target)*grad_aspect + 2*qs_mse_scale*(qs_mse - qs_mse_target)*grad_qs_mse
 
   stat_cond = np.linalg.norm(grad)
   if master:
@@ -235,8 +243,8 @@ def ApproximateHessian(xx,aspect_target=aspect0,qs_mse_target=qs_mse0):
   # qs_mse hessian
   hess_qs_mse = (2/prob.n_qs_residuals)*(qs_mse - qs_mse_target)*jac_stored[:-1].T @ jac_stored[:-1]
 
-  H = 2*np.outer(grad_aspect,grad_aspect) + 2*np.outer(grad_qs_mse,grad_qs_mse)\
-      + 2*hess_qs_mse + 2*hess_aspect
+  H = 2*np.outer(grad_aspect,grad_aspect) + 2*qs_mse_scale*np.outer(grad_qs_mse,grad_qs_mse)\
+      + 2*qs_mse_scale*hess_qs_mse + 2*hess_aspect
   return np.copy(H)
 
 def PredictorStep(xx,target_xx,target_new):
@@ -284,7 +292,7 @@ def PredictorStep(xx,target_xx,target_new):
   B = ApproximateHessian(xx,*target_xx)
   Q,R = np.linalg.qr(B)
   # compute the jacobian
-  grad_qs_mse = (2/prob.n_qs_residuals)*jac_stored[:-1].T @ raw_stored[:-1]
+  grad_qs_mse = qs_mse_scale*(2/prob.n_qs_residuals)*jac_stored[:-1].T @ raw_stored[:-1]
   grad_aspect = jac_stored[-1]
   J = np.vstack((grad_aspect,grad_qs_mse)) # rows are gradients (2,dim_x)
 
@@ -320,7 +328,7 @@ for ii in range(n_solves):
     print('qs_mse_target',qs_mse_target)
     print("")
     print("running newton method")
-    print(f"for {max_iter} steps or stationary target {kkt_tol}")
+    print(f"for {max_iter} steps or kkt_tol {kkt_tol}")
     sys.stdout.flush()
   
   # wrap the functions
