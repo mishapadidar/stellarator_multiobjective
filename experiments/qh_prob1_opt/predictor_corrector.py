@@ -35,11 +35,11 @@ If you would like to run this at the command line set `debug=True`.
 #####
 
 # choose stopping criteria
-max_iter = 50 # evals per iteration
+max_iter = 100 # evals per iteration
 kkt_tol  = 1e-8
-n_solves = 10 # number of predictor corrector solves
+n_solves = 15 # number of predictor corrector solves
 # rough step size
-aspect_step_size = 0.05 # positive
+aspect_step_size = 0.025 # positive
 
 # output dir
 outputdir = "../data"
@@ -311,38 +311,56 @@ def PredictorStep(xx,target_xx,target_new):
 # run predictor/corrector iteration
 #####
 
-def set_target(xx,lam_xx,aspect_step,qs_mse_xx,aspect_xx):
+def set_target(F_k,F_kp1):
   """ 
   Set the target point.
-  xx: point on the pareto front
-  lam_xx: lagrange multiplier satisfying pareto stationary condition
-  aspect_step: step size to take along aspect ratio
-  qs_mse_xx: the qs_mse at xx
-  aspect_xx: the aspect at xx
-
-  WARNING: negative lagrange multipliers will cause the target to 
-  be set in the opposite direction.
+  F_k,F_kp1: function value vectors at iterates x_k, x_kp1 on the
+    pareto front.
+  
+  - Draw a line through F_k and F_kp1. It should have negative slope, m.
+  - given a desired change in aspect, aspect_step compute the change
+    in qs_mse along this line via. We call this the tangent point:
+      A_tang = A_kp1 + aspect_step
+      Q_tang = Q_kp1 + m*aspect_step
+  - now push off the tangent point in the normal direction away from
+    the pareto front. The normal to the line through F_k, F_kp1 has
+    slope (-1/m). We want the qs_mse to decrease by say 0.5*Q_kp1
+    along this perturbation. So we set
+      Q_norm = Q_tang - 0.5*Q_kp1
+      A_norm = A_tang - 0.5*Q_kp1/(-1/m)
+    notice the last equality comes from solving 
+      Q_norm-Q_tang = (-1/m)*(A_norm - A_tang)
+    for A_norm.
   """
-  # TODO: this might not be necessary
-  # The method should naturally correct itself after a bad iteration.
-  #if lam_xx < 0.0:
-  #  # protect against negative lagrange multipliers
-  #  qs_target_dec = 0.1*qs_mse_xx
-  #  target_k = np.array([aspect_xx,qs_target_dec])
-  #  return target_k
-  qs_mse_step = - lam_xx*aspect_step
-  tang_point = np.array([aspect_xx,qs_mse_xx]) + np.array([aspect_step,qs_mse_step])
-  qs_mse_frac = 0.5 # fraction of qs_mse to decrease along normal step
-  normal_step = np.array([qs_mse_xx*lam_xx*qs_mse_frac,qs_mse_xx*qs_mse_frac])
-  # set initial target based on the tangent
-  target_k = tang_point - normal_step
-  return target_k
+  # slope dQ/dA
+  m = (F_kp1[1]-F_k[1])/(F_kp1[0] - F_k[0])
+  # tangent point is F_kp1 + (A-A0, Q - Q0)
+  tang_point = F_kp1 + np.array([aspect_step,m*aspect_step])
+  # now push off the tangent point in the normal direction
+  Q_dec = 0.5*F_kp1[1]
+  norm_point = tang_point - Q_dec*np.array([1,-m])
+  return np.copy(norm_point)
 
-target_k = set_target(x0,lam,aspect_step,qs_mse0,aspect0)
+def set_initial_target(aspect0,qs_mse0):
+  """ set the initial target """
+  if direction == "left":
+    target = np.array([aspect0+aspect_step,qs_mse0/2])
+  if direction == "right":
+    target = np.array([aspect0,qs_mse0/10])
+  return np.copy(target)
+
+# set the initial iterate 
+x_k = np.copy(x0)
+F_k = np.array([aspect0,qs_mse0])
+
+# set the initial target
+target_k = set_initial_target(aspect0,qs_mse0)
 aspect_target = target_k[0]
 qs_mse_target = target_k[1]
 
-x_k = np.copy(x0)
+# set the predicted point
+x_pred = np.copy(x_k)
+
 for ii in range(n_solves):
   if master:
     print("")
@@ -361,9 +379,10 @@ for ii in range(n_solves):
   OptHessian = partial(ApproximateHessian,**{'aspect_target':aspect_target,'qs_mse_target':qs_mse_target})
   
   # run the corrector
-  xopt = NewtonLinesearch(OptObjective,OptGradient,OptHessian,x_k,max_iter=max_iter,gtol=kkt_tol)
+  x_kp1 = NewtonLinesearch(OptObjective,OptGradient,OptHessian,x_pred,max_iter=max_iter,gtol=kkt_tol)
 
   # compute diagnostics
+  xopt = np.copy(x_kp1)
   rawopt = prob.raw(xopt)
   jacopt = prob.jacp_residuals(xopt)
   grad_qs = (2/prob.n_qs_residuals)*jacopt[:-1].T @ rawopt[:-1]
@@ -385,11 +404,14 @@ for ii in range(n_solves):
     print('pareto stationary condition: ',stat_cond)
     print('lagrange multiplier: ',lam)
 
+  # objectives at new point
+  F_kp1 = np.array([aspect_opt,qs_mse_opt])
+
   # set a new target
-  target_kp1 = set_target(xopt,lam,aspect_step,qs_mse_opt,aspect_opt)
+  target_kp1 = set_target(F_k,F_kp1)
 
   # compute predictor step
-  x_kp1 = PredictorStep(xopt,target_k,target_kp1)
+  x_pred = PredictorStep(x_kp1,target_k,target_kp1)
   
   # check objective and gradient
   if master:
