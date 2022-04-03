@@ -39,7 +39,7 @@ max_iter = 100 # evals per iteration
 kkt_tol  = 1e-8
 n_solves = 15 # number of predictor corrector solves
 # rough step size
-aspect_step_size = 0.025 # positive
+aspect_step_size = 0.1 # positive
 
 # output dir
 outputdir = "../data"
@@ -295,7 +295,11 @@ def PredictorStep(xx,target_xx,target_new):
   J = np.vstack((grad_aspect,grad_qs_mse)) # rows are gradients (2,dim_x)
 
   # check the conditioning
-  hess_cond = np.linalg.cond(B)
+  try:
+    hess_cond = np.linalg.cond(B)
+  except:
+    # it fails sometimes
+    hess_cond = np.inf
   if master:
     print('Hessian condition number: ',hess_cond)
   
