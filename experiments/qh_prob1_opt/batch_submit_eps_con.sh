@@ -1,8 +1,8 @@
 
-ASPECTS=('8.75' '8.8' '9.1' '9.2') 
-#ASPECTS=('3.0' '3.5' '3.75' '4.5' '5.0' '5.5' '6.0' '6.5' '7.0' '7.5' '8.0' '8.5' '9.0' '9.5' '10.0') 
+#ASPECTS=('3.0' '3.5' '3.75' '4.25' '4.5' '5.0' '5.5' '6.0' '6.5' '7.0' '7.5' '8.0' '8.25' '8.5' '9.0' '9.5' '10.0') 
+ASPECTS=('9.05' '9.25' '9.55' '9.75' '9.95') 
 warm="True"
-vmec="high" # use high for aspect < 4.5, and when singular jacobians appear.
+vmec="super" # use high for maxmode=5. only use super for aspect>=9
 maxmode=5
 NODES=1
 CORES=12

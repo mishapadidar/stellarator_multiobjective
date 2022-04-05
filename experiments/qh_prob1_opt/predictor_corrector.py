@@ -33,7 +33,7 @@ using a penalty approach.
 # predictor corrector steps
 max_pc_steps = 10
 # penalty method parameters
-max_solves = 3 # number of penalty updates
+max_solves = 2 # number of penalty updates
 pen0    = 1e4 # initial penalty param.
 pen_inc = 10.0 # increase parameter
 ctol    = 1e-6 # target constraint tolerance
@@ -50,7 +50,7 @@ max_mode = int(sys.argv[3]) # max mode = 1,2,3,4,5...
 aspect_step = float(sys.argv[4]) # can be negative for left expansion
 
 assert max_mode <=5, "max mode out of range"
-assert vmec_res in ["low","mid","high"]
+assert vmec_res in ["low","mid","high","super"]
 if vmec_res == "low":
   vmec_input = "../../../problem/input.nfp4_QH_warm_start"
   if debug:
@@ -59,6 +59,8 @@ elif vmec_res == "mid":
   vmec_input = "../../../problem/input.nfp4_QH_warm_start_mid_res"
 elif vmec_res == "high":
   vmec_input = "../../../problem/input.nfp4_QH_warm_start_high_res"
+elif vmec_res == "super":
+  vmec_input = "../../../problem/input.nfp4_QH_warm_start_super_high_res"
 # load the problem
 prob = qh_prob1.QHProb1(max_mode=max_mode,vmec_input = vmec_input,aspect_target = aspect_target)
 

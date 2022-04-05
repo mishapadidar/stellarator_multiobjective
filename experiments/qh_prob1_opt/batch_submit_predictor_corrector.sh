@@ -1,9 +1,9 @@
 
-#ASPECTS=('5.075' '8.0' '8.3' '4.95') # for moving left
-ASPECTS=('4.4' '6.2' '8.7') # for moving right
-vmec="high" # use high for aspect < 4.5, and when singular jacobians appear.
+#ASPECTS=('3.0' '4.0' '5.0' '6.0' '7.0' '8.0' '9.0') 
+ASPECTS=('9.0') 
+aspect_step=0.1 # can be positive or negative
+vmec="super" # use high for maxmode=5. only use super for aspect>=9
 maxmode=5
-direction="right"
 NODES=1
 CORES=12
 for idx in ${!ASPECTS[@]}
@@ -13,7 +13,7 @@ do
   # make a dir
   mkdir "_batch_pc_${aspect}"
 
-  # copy the penalty method
+  # copy the predictor corrector method
   cp "./predictor_corrector.py" "_batch_pc_${aspect}/predictor_corrector.py"
 
   # write the run file
@@ -42,7 +42,7 @@ do
   printf '%s\n' "#SBATCH --partition=bindel  # Which partition/queue it should run on" >> ${SUB}
   printf '%s\n' "#SBATCH --exclude=g2-cpu-[01-11],g2-cpu-[97-99],g2-compute-[94-97]" >> ${SUB}
   printf '%s\n' "#SBATCH --exclusive" >> ${SUB}
-  printf '%s\n' "mpiexec -n $[$NODES*$CORES] python3 predictor_corrector.py ${aspect} ${vmec} ${maxmode} ${direction}" >> ${SUB}
+  printf '%s\n' "mpiexec -n $[$NODES*$CORES] python3 predictor_corrector.py ${aspect} ${vmec} ${maxmode} ${aspect_step}" >> ${SUB}
   
   ## submit
   cd "./_batch_pc_${aspect}"
