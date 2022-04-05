@@ -22,7 +22,7 @@ def collect_function_values(datadir,from_scratch=True):
   filelist = glob.glob(datadir +"/data*.pickle")
   filelist.sort()
 
-  outfilename = datadir + "/function_values.pickle"
+  outfilename = datadir + "/plot_data.pickle"
   if os.path.exists(outfilename) and from_scratch is False:
     indata = pickle.load(open(outfilename,"rb"))
     aspect_list = indata['aspect']
