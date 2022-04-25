@@ -41,16 +41,13 @@ vmec_res = sys.argv[3] # vmec input fidelity low, mid, high
 max_mode = int(sys.argv[4]) # max mode = 1,2,3,4,5...
 
 assert max_mode <=5, "max mode out of range"
-#assert vmec_res in ["low","mid","high","super"]
-assert vmec_res in ["low"]
+assert vmec_res in ["low","high"]
 if vmec_res == "low":
   vmec_input = "../../../problem/input.nfp2_QA"
   if debug:
     vmec_input = "../../../problem/input.nfp2_QA"
-#elif vmec_res == "mid":
-#  vmec_input = "../../../problem/input.nfp4_QH_warm_start_mid_res"
-#elif vmec_res == "high":
-#  vmec_input = "../../../problem/input.nfp4_QH_warm_start_high_res"
+elif vmec_res == "high":
+  vmec_input = "../../../problem/input.nfp2_QA_high_res"
 #elif vmec_res == "super":
 #  vmec_input = "../../../problem/input.nfp4_QH_warm_start_super_high_res"
 
