@@ -6,7 +6,7 @@
   NSTEP =  200
   TCON0 =   2.00E+00
   NS_ARRAY    =      16       50
-  NITER_ARRAY =     600     5000
+  NITER_ARRAY =     600     7000
   FTOL_ARRAY  = 1.0E-16  1.0E-11
 
 !  NS_ARRAY    =      12      25      50      75     100     150     201
@@ -18,8 +18,8 @@
 !----- Grid Parameters -----
   LASYM = F
   NFP = 0002
-  MPOL = 0009
-  NTOR = 0009
+  MPOL = 0008
+  NTOR = 0008
   PHIEDGE =    0.08385727554
 !----- Free Boundary Parameters -----
   LFREEB = F
