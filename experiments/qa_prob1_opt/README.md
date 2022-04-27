@@ -3,21 +3,24 @@
 
 `find_pareto_front.py` reads through the data and collects the points `X` and function
 values `FX` of pareto optimal data. This should be run after `eps_con.py` to accumulate
-a pickle file of pareto optimal points. These points are used for warm starting `eps_con.py`
-and `predictor_corrector.py`.
+a pickle file of pareto optimal points. 
+
+`find_warm_start.py` reads through the data and collects the points `X` for warm starting
+optimization runs. These points are used for warm starting `eps_con.py` and 
+`predictor_corrector.py`.
 
 We principly use the epsilon constraint method for minimizing quasisymmetry subject 
 to an inequality constraint on aspect ratio. This code is in `eps_con.py`. `eps_con.py`
 can be submitted on graphite via the submission script `batch_submit_eps_con.py`.
 If `warm=True` then the script will warm start from the pareto optimal point with aspect
-ratio nearest `aspect_target`. So you must make sure that you have run `find_pareto_front.py`
+ratio nearest `aspect_target`. So you must make sure that you have run `find_warm_start.py`
 at some point before the run starts, in order to generate the pickle file with the 
-pareto front.
+warm start points.
 
 The second method we use is a local expansion for locally exploring the pareto front
 This code is in `predictor_corrector.py` and can be sumbbit to G2 via
 `batch_submit_predictor_corrector.py`. This script starts its iteration from points on the 
-pareto front, so `find_pareto_front.py` should be run at some point before running 
+pareto front, so `find_warm_start.py` should be run at some point before running 
 `predictor_corrector.py`. 
 
 `make_plot_data.py` will read through the data and make a pickle file with all of the function
