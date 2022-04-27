@@ -47,13 +47,14 @@ def find_warm_start(datadir,save=True,from_scratch=True):
     print('loading',ff)
     indata = pickle.load(open(ff,"rb"))
     xopt = indata['xopt']
-    qs_mse_opt = outdata['qs_mse_opt'] 
-    aspect_opt = outdata['aspect_opt']
+    qs_mse_opt = indata['qs_mse_opt'] 
+    aspect_opt = indata['aspect_opt']
 
     # append new data to lists
-    X.append(xopt)
-    aspect_list = np.append(aspect_list,aspect_opt)
-    qs_list = np.append(qs_list,qs_mse_opt)
+    if np.isfinite(qs_mse_opt):
+      X.append(xopt)
+      aspect_list = np.append(aspect_list,aspect_opt)
+      qs_list = np.append(qs_list,qs_mse_opt)
 
     # make FX
     FX = np.vstack((aspect_list,qs_list))
@@ -62,9 +63,10 @@ def find_warm_start(datadir,save=True,from_scratch=True):
       outdata['X'] = X
       outdata['FX'] = FX
       outdata['filelist'] = processed
-      pickle.dump(outdata,open(datadir + "/pareto_optimal_points.pickle","wb"))
+      pickle.dump(outdata,open(outfilename,"wb"))
   return X,FX
 
 
 if __name__=="__main__":
-  find_warm_start("./data",save=True,from_scratch=True)
+  d = find_warm_start("./data",save=True,from_scratch=True)
+  print(d)
