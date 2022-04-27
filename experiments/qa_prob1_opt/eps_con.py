@@ -45,7 +45,7 @@ assert vmec_res in ["low","high"]
 if vmec_res == "low":
   vmec_input = "../../../problem/input.nfp2_QA"
   if debug:
-    vmec_input = "../../../problem/input.nfp2_QA"
+    vmec_input = "../../problem/input.nfp2_QA"
 elif vmec_res == "high":
   vmec_input = "../../../problem/input.nfp2_QA_high_res"
 #elif vmec_res == "super":
@@ -61,7 +61,8 @@ if debug:
 
 if warm_start is True:
   # find a point on the pareto front
-  pareto_data = pickle.load(open(outputdir + "/pareto_optimal_points.pickle","rb"))
+  #pareto_data = pickle.load(open(outputdir + "/pareto_optimal_points.pickle","rb"))
+  pareto_data = pickle.load(open(outputdir + "/warm_start_points.pickle","rb"))
   idx_start = np.argmin(np.abs(pareto_data['FX'][:,0] - aspect_target))
   x0 = np.copy(pareto_data['X'][idx_start])
   del pareto_data

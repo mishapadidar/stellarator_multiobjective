@@ -57,7 +57,7 @@ def find_warm_start(datadir,save=True,from_scratch=True):
       qs_list = np.append(qs_list,qs_mse_opt)
 
     # make FX
-    FX = np.vstack((aspect_list,qs_list))
+    FX = np.vstack((aspect_list,qs_list)).T
     if save:
       outdata = {}
       outdata['X'] = X
@@ -68,5 +68,4 @@ def find_warm_start(datadir,save=True,from_scratch=True):
 
 
 if __name__=="__main__":
-  d = find_warm_start("./data",save=True,from_scratch=True)
-  print(d)
+  find_warm_start("./data",save=True,from_scratch=True)
