@@ -99,7 +99,7 @@ seed = prob.sync_seeds()
 #####
 
 F0 = prob.eval(x0)
-aspect0 = F0[1] + aspect_target
+aspect0 = prob.aspect(x0)
 qs_mse0 = F0[0]
 if master:
   print(f"Starting with qs mse {qs_mse0} and aspect {aspect0}.")
