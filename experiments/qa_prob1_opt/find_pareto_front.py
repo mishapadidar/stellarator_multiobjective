@@ -49,20 +49,27 @@ def find_pareto_front(datadir,save=True,from_scratch=True):
     qs_mse = np.mean(RX[:,:-1]**2,axis=1)
     asp = RX[:,-1]
 
+    # truncate data to [3,10]
+    idx_trunc = np.logical_and(asp>=3,asp<=10)
+    asp = asp[idx_trunc]
+    qs_mse = qs_mse[idx_trunc]
+    inX = indata['X'][idx_trunc]
+
     # append new data to lists
-    for xx in indata['X']:
+    #for xx in indata['X']:
+    for xx in inX:
       X.append(xx)
     aspect_list = np.append(aspect_list,asp)
     qs_list = np.append(qs_list,qs_mse)
 
     # compute pareto set
-    FX = np.vstack((aspect_list,qs_list)).T
+    FX = np.copy(np.vstack((aspect_list,qs_list)).T)
     idx_pareto = is_pareto_efficient(FX,return_mask=False)
 
     # only keep pareto points
-    aspect_list = aspect_list[idx_pareto]
-    qs_list = qs_list[idx_pareto]
-    FX = FX[idx_pareto]
+    aspect_list = np.copy(aspect_list[idx_pareto])
+    qs_list     = np.copy(qs_list[idx_pareto])
+    FX = np.copy(FX[idx_pareto])
     X  = [X[ii] for ii in idx_pareto]
 
     if save:
@@ -71,6 +78,7 @@ def find_pareto_front(datadir,save=True,from_scratch=True):
       outdata['FX'] = FX
       outdata['filelist'] = processed
       pickle.dump(outdata,open(datadir + "/pareto_optimal_points.pickle","wb"))
+  print(FX)
   return X,FX
 
 
