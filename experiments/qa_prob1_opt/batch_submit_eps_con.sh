@@ -1,9 +1,8 @@
 
-#ASPECTS=('3.0' '3.5' '3.75' '4.25' '4.5' '5.0' '5.5' '6.0' '6.5' '7.0' '7.5' '8.0' '8.25' '8.5' '9.0' '9.5' '10.0') 
-ASPECTS=('2.0' '3.0' '4.0' '5.0' '6.0' '7.0' '8.0' '9.0' '10.0') 
+ASPECTS=('2.5' '3.5' '4.5' '5.5' '6.5' '7.5' '8.5' '9.5') 
 warm="False"
-vmec="low" # use high for maxmode=5. only use super for aspect>=9
-maxmode=5
+vmec="high" # use high for maxmode=5. only use super for aspect>=9
+maxmode=4
 NODES=1
 CORES=12
 for idx in ${!ASPECTS[@]}
