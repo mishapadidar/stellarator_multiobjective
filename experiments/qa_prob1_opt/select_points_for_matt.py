@@ -27,6 +27,9 @@ prob = qa_prob1.QAProb1(max_mode=max_mode,vmec_input = vmec_input)
 for idx in range(len(X)):
   """
   Resetting the problem helps avoid failures!!!
+
+  If a point cannot be evaluated try using
+  mpol=ntor=6,7,8,9,10.
   """
   prob = qa_prob1.QAProb1(max_mode=max_mode,vmec_input = vmec_input)
   x0 = X[idx]
