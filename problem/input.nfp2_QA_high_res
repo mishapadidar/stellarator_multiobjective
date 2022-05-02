@@ -2,12 +2,12 @@
 &INDATA
 !----- Runtime Parameters -----
   DELT =   5.00E-01
-  NITER = 10000
+  NITER = 20000
   NSTEP =  200
   TCON0 =   2.00E+00
-  NS_ARRAY    =      16       50
-  NITER_ARRAY =     600     7000
-  FTOL_ARRAY  = 1.0E-16  1.0E-11
+  NS_ARRAY    =      16       50     100      150
+  NITER_ARRAY =     600     7000   10000    20000
+  FTOL_ARRAY  = 1.0E-16  1.0E-11 1.0E-11  1.0E-11
 
 !  NS_ARRAY    =      12      25      50      75     100     150     201
 !  NITER_ARRAY =    1200    2000    3000    4000    5000    6000   20000
