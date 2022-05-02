@@ -7,7 +7,7 @@ import sys
 sys.path.append("../../utils")
 from is_pareto_efficient import is_pareto_efficient
 
-def find_pareto_front(datadir,save=True,from_scratch=True):
+def find_pareto_front(datadir,save=True,from_scratch=True,asp_lb=3.0,asp_ub=10.0):
   """
   Find the pareto front over a given set of files. 
 
@@ -49,8 +49,15 @@ def find_pareto_front(datadir,save=True,from_scratch=True):
     qs_mse = np.mean(RX[:,:-1]**2,axis=1)
     asp = RX[:,-1]
 
+    # truncate data to [3,10]
+    idx_trunc = np.logical_and(asp>=asp_lb,asp<=asp_ub)
+    asp = asp[idx_trunc]
+    qs_mse = qs_mse[idx_trunc]
+    inX = indata['X'][idx_trunc]
+
     # append new data to lists
-    for xx in indata['X']:
+    #for xx in indata['X']:
+    for xx in inX:
       X.append(xx)
     aspect_list = np.append(aspect_list,asp)
     qs_list = np.append(qs_list,qs_mse)
