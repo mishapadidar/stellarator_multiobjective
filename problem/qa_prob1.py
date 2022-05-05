@@ -53,7 +53,7 @@ class QAProb1():
     self.n_qs_radii = 11 
     self.QS = QuasisymmetryRatioResidual(self.vmec,
                                 np.linspace(0,1,self.n_qs_radii),  # Radii to target
-                                helicity_m=1, helicity_n=-1)  # (M, N) you want in |B|
+                                helicity_m=1, helicity_n=0)  # (M, N) you want in |B|
     self.n_qs_residuals = 44352 # counted from computation
     self.aspect_target = aspect_target
     self.dim_raw = self.n_qs_residuals + 2
