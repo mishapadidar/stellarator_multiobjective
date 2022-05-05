@@ -100,36 +100,37 @@ seed = prob.sync_seeds()
 
 F0 = prob.eval(x0)
 aspect0 = prob.aspect(x0)
+iota0 = prob.iota(x0)
 qs_mse0 = F0[0]
 if master:
-  print(f"Starting with qs mse {qs_mse0} and aspect {aspect0}.")
+  print(f"Starting with qs mse {qs_mse0} and aspect {aspect0} and mean iota {iota0}.")
 
-max_iter = 100 # evals per iteration
+max_iter = 50 # evals per iteration
 ftarget  = 1e-11
 ftol_abs = ftarget*1e-5
 kkt_tol  = 1e-7 
-max_solves = 4 # number of penalty updates
+max_solves = 2 # number of penalty updates
 pen0    = 1e3 # initial penalty param.
 pen_inc = 10.0 # increase parameter
 ctol    = 1e-6 # target constraint tolerance
-block_size = prob.mpi.ngroups # block size
 
 # pen parameter initialization
 raw0 = prob.raw(x0)
 jac0 = prob.jacp_residuals(x0)
-grad_qs = (2/prob.n_qs_residuals)*jac0[:-1].T @ raw0[:-1]
-grad_asp = jac0[-1]
-gc_ratio = np.linalg.norm(grad_qs)/np.linalg.norm(grad_asp)
+grad_qs = (2/prob.n_qs_residuals)*jac0[:-2].T @ raw0[:-2]
+grad_asp = jac0[-2]
+grad_iota = jac0[-1]
 # increase the penalty param
-pen_param = pen0*gc_ratio
+pen_param = pen0*np.linalg.norm(grad_qs)/np.array([np.linalg.norm(grad_asp),np.linalg.norm(grad_iota)])
 
 if master:
   print('')
   print('aspect target: ', aspect_target)
   print('initial penalty parameter: ',pen_param)
-  print('initial |grad|: ',np.linalg.norm(grad_qs + pen_param*grad_asp))
+  print('initial |grad|: ',np.linalg.norm(grad_qs + pen_param[0]*grad_asp + pen_param[1]*grad_iota))
   print('initial |qs grad|: ',np.linalg.norm(grad_qs))
-  print('initial |aspect^2 grad|: ',np.linalg.norm(grad_asp))
+  print('initial |aspect grad|: ',np.linalg.norm(grad_asp))
+  print('initial |iota grad|: ',np.linalg.norm(grad_iota))
   print('ftarget:',ftarget)
   print('ftol_abs:',ftol_abs)
   print('kkt tol:',kkt_tol)
@@ -139,7 +140,7 @@ if master:
 #####
 
 # wrap the raw objective
-func_wrap = eval_wrapper(prob.raw,prob.dim_x,prob.n_qs_residuals+1)
+func_wrap = eval_wrapper(prob.raw,prob.dim_x,prob.dim_raw)
 
 def Constraint(xx):
   """ constraint c(x) <= 0"""
@@ -148,13 +149,14 @@ def Constraint(xx):
 # write the objective
 def PenaltyObjective(xx):
   """ penalty obj 
-  p(x) = Q(x) + pen*max(0,(A(x) - A*))**2   
+  p(x) = Q(x) + pen*max(0,(A(x) - A*))**2  + pen*(iota - iota*)**2 
   """
   qs_mse = np.mean(prob.qs_residuals(xx)**2)
-  asp = Constraint(xx)
-  ret = qs_mse + pen_param*max(asp,0)**2
+  iota_res = prob.iota(xx) - prob.iota_target
+  asp_res = prob.aspect(xx) - aspect_target
+  ret = qs_mse + pen_param[0]*max(asp_res,0)**2 + pen_param[1]*(iota_res)**2
   if master:
-    print(f'f(x): {ret}, qs mse: {qs_mse}, asp-a*: {asp}')
+    print(f'f(x): {ret}, qs mse: {qs_mse}, asp_res: {asp_res}, iota_res: {iota_res}')
   return ret
 # write the objective
 def PenaltyResiduals(xx):
@@ -162,27 +164,29 @@ def PenaltyResiduals(xx):
     [(1/sqrt(m))q1(x),...,(1/sqrt(m))qm(x),sqrt(pen)*max(A(x) - A*,0)]
   """
   # compute raw values
-  #resid = prob.raw(xx)
-  resid = func_wrap(xx)
+  raw = func_wrap(xx)
   # for print
-  qs_mse = np.mean(resid[:-1]**2)
-  asp = resid[-1] 
+  qs_mse = np.mean(raw[:-2]**2)
+  asp = raw[-2] 
+  iota = raw[-1]
   # compute residual
-  resid[-1] = max(resid[-1] - aspect_target,0)
+  raw[-2] = max(asp - aspect_target,0)
+  raw[-1] = iota - prob.iota_target
   # weight the residuals
-  resid[:-1] *= np.sqrt(1.0/prob.n_qs_residuals)
-  resid[-1]  *= np.sqrt(pen_param)
-  ff = np.sum(resid**2)
+  raw[:-2] *= np.sqrt(1.0/prob.n_qs_residuals)
+  raw[-2]  *= np.sqrt(pen_param[0])
+  raw[-1]  *= np.sqrt(pen_param[1])
+  ff = np.sum(raw**2)
   if master:
-    print(f'f(x): {ff}, qs mse: {qs_mse}, aspect: {asp}')
-  return resid
+    print(f'f(x): {ff}, qs mse: {qs_mse}, aspect: {asp}, iota: {iota}')
+  return raw
 def JacPenaltyResiduals(xx,idx=range(dim_x),h=1e-7):
   """Weighted penalty residuals jacobian 
      Method is comptabile with 
      BlockCoordinateGaussNewton
 
      Jacobian of 
-     [(1/sqrt(m))q1(x),...,(1/sqrt(m))qm(x),sqrt(pen)*max(A(x) - A*,0)]
+     [(1/sqrt(m))q1(x),...,(1/sqrt(m))qm(x),sqrt(pen)*max(A(x) - A*,0),sqrt(pen)*(iota-iota*)]
   """
   #jac = prob.jacp_residuals(xx)
   h2   = h/2.0
@@ -192,17 +196,19 @@ def JacPenaltyResiduals(xx,idx=range(dim_x),h=1e-7):
   jac = (Fp[:-1] - Fp[-1])/(h2)
   jac = np.copy(jac.T)
   # save the evals
-  Fp[:,-1] += aspect_target
+  #Fp[:,-2] += aspect_target
+  #Fp[:,-1] += prob.iota_target
   # dont save the center point b/c it has already been saved
   #func_wrap.X = np.append(func_wrap.X,Ep[:-1],axis=0)
   #func_wrap.FX = np.append(func_wrap.FX,Fp[:-1],axis=0)
   # make sure to take gradient of max
   asp = prob.aspect(xx)
   if asp -aspect_target <= 0.0:
-    jac[-1] = 0.0
+    jac[-2] = 0.0
   # weight the residuals
-  jac[:-1] *= np.sqrt(1.0/prob.n_qs_residuals)
-  jac[-1] *= np.sqrt(pen_param)
+  jac[:-2] *= np.sqrt(1.0/prob.n_qs_residuals)
+  jac[-2] *= np.sqrt(pen_param[0])
+  jac[-1] *= np.sqrt(pen_param[1])
   if master:
     print('computing jac')
   return jac
@@ -214,14 +220,12 @@ def JacPenaltyResiduals(xx,idx=range(dim_x),h=1e-7):
 if master:
   print("Running penalty method")
   print(f"with {max_iter} steps per iteration")
-  print(f'Block Gauss Newton with block size:',block_size)
   sys.stdout.flush()
 
 for ii in range(max_solves):
   if master:
     print("\n")
     print("iteration",ii)
-  #xopt = BlockCoordinateGaussNewton(PenaltyResiduals,JacPenaltyResiduals,x0,block_size=block_size,max_iter=max_iter,ftarget=ftarget)
   xopt = GaussNewton(PenaltyResiduals,JacPenaltyResiduals,x0,max_iter=max_iter,ftarget=ftarget,ftol_abs=ftol_abs,gtol=1e-10)
   fopt = PenaltyObjective(xopt)
   copt = Constraint(xopt)
@@ -236,29 +240,20 @@ for ii in range(max_solves):
   # compute gradients at minimum
   rawopt = prob.raw(xopt)
   jacopt = prob.jacp_residuals(xopt)
-  grad_qs = (2/prob.n_qs_residuals)*jacopt[:-1].T @ rawopt[:-1]
-  grad_asp = jacopt[-1]
+  grad_qs = (2/prob.n_qs_residuals)*jacopt[:-2].T @ rawopt[:-2]
+  grad_asp = jacopt[-2]
+  grad_iota = jacopt[-1]
 
   # compute some values
-  qs_mse_opt = np.mean(rawopt[:-1]**2)
-  aspect_opt = rawopt[-1]
+  qs_mse_opt = np.mean(rawopt[:-2]**2)
+  aspect_opt = rawopt[-2]
+  iota_opt = rawopt[-1]
   
-  # compute the lagrange multiplier
-  lam = max(-(grad_qs @ grad_asp)/(grad_asp @ grad_asp),0.0)
-  stat_cond = np.linalg.norm(grad_qs + lam*grad_asp)
-  # check KKT conditions
-  if copt <= ctol and stat_cond <=kkt_tol:
-    KKT = True
-  else:
-    KKT = False
   if master:
     print('qs mse',qs_mse_opt)
     print('aspect',aspect_opt)
-    print('stationary cond: ',grad_qs + lam*grad_asp)
-    print('lagrange multiplier: ',lam)
-    print('norm stationary cond: ',stat_cond)
+    print('iota',iota_opt)
     sys.stdout.flush()
-
 
   # dump the evals at the end
   if master:
@@ -271,17 +266,16 @@ for ii in range(max_solves):
     outdata['rawopt'] = rawopt
     outdata['qs_mse_opt'] = qs_mse_opt
     outdata['aspect_opt'] = aspect_opt
+    outdata['iota_opt'] = iota_opt
     outdata['copt'] = copt
     outdata['aspect_target'] = aspect_target
+    outdata['iota_target'] = prob.iota_target
     outdata['ctol'] = ctol
     outdata['jacopt'] = jacopt 
     outdata['X'] = func_wrap.X
     outdata['RawX'] = func_wrap.FX
     outdata['pen_param'] = pen_param
-    outdata['KKT'] = KKT
     outdata['kkt_tol'] = kkt_tol
-    outdata['stationary_condition'] = stat_cond
-    outdata['lam'] = lam # lagrange multiplier
     outdata['grad_qs'] = grad_qs
     outdata['grad_aspect'] = grad_asp
     pickle.dump(outdata,open(outfilename,"wb"))
@@ -290,13 +284,11 @@ for ii in range(max_solves):
   x0 = np.copy(xopt)
   if copt >=ctol:
     # only increase penalty if infeasible
-    pen_param = pen_inc*pen_param
-  else:
-    # check stationarity
-    if KKT:
-      print("KKT conditions satisfied")
-      break
-    elif fopt <= ftarget:
-      # decrease target to get more iterations
-      ftarget = ftarget/10
+    pen_param[0] = pen_inc*pen_param[0]
+  if np.abs(iota_opt-prob.iota_target) >=ctol:
+    # only increase penalty if infeasible
+    pen_param[1] = pen_inc*pen_param[1]
+  if fopt <= ftarget:
+    # decrease target to get more iterations
+    ftarget = ftarget/10
 
