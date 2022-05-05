@@ -56,8 +56,10 @@ class QAProb1():
                                 helicity_m=1, helicity_n=-1)  # (M, N) you want in |B|
     self.n_qs_residuals = 44352 # counted from computation
     self.aspect_target = aspect_target
-    self.dim_raw = self.n_qs_residuals + 1
-    self.dim_F = 2
+    self.dim_raw = self.n_qs_residuals + 2
+    self.dim_F = 3
+    self.iota_target=0.42
+
 
   def increase_dimension(self,xx,target_max_mode):
     """
@@ -93,6 +95,22 @@ class QAProb1():
     self.mpi.comm_world.Bcast(seed,root=0)
     np.random.seed(int(seed[0]))
     return int(seed[0])
+
+  def iota(self,y):
+    """ compute iota at a single point"""
+    # update the surface
+    self.surf.x = np.copy(y)
+
+    # evaluate the objectives
+    try:
+      obj = self.vmec.mean_iota()
+    except:
+      obj = np.inf
+
+    # catch partial failures
+    if np.isnan(obj):
+      obj = np.inf
+    return obj
 
   def aspect(self,y):
     """ compute aspect ratio at a single point"""
@@ -151,8 +169,12 @@ class QAProb1():
       obj2 = self.surf.aspect_ratio()
     except:
       obj2 = np.inf
+    try:
+      obj3 = self.vmec.mean_iota()
+    except:
+      obj3 = np.inf
 
-    obj = np.hstack((obj1,obj2))
+    obj = np.hstack((obj1,obj2,obj3))
     # catch partial failures
     obj[np.isnan(obj)] = np.inf
     return obj
@@ -215,9 +237,10 @@ class QAProb1():
     if raw is None:
       raw = self.raw(y)
 
-    obj1 = np.mean(raw[:-1]**2)
-    obj2 = (raw[-1] - self.aspect_target)**2
-    obj =  np.array([obj1,obj2])
+    obj1 = np.mean(raw[:-2]**2)
+    obj2 = (raw[-2] - self.aspect_target)**2
+    obj3 = (raw[-1] - self.iota_target)**2
+    obj =  np.array([obj1,obj2,obj3])
     # catch partial failures
     obj[np.isnan(obj)] = np.inf
     return obj
@@ -284,7 +307,8 @@ class QAProb1():
     # compute raw objectives
     resid = self.raw(y)
     # turn aspect into a residual
-    resid[-1] -= self.aspect_target
+    resid[-2] -= self.aspect_target
+    resid[-1] -= self.iota_target
     # catch partial failures
     resid[np.isnan(resid)] = np.inf
     return resid
@@ -309,7 +333,8 @@ class QAProb1():
     # do the evals in parallel
     resid = self.rawp(Y)
     # turn aspect into a residual
-    resid[:,-1] -= self.aspect_target
+    resid[:,-2] -= self.aspect_target
+    resid[:,-1] -= self.iota_target
     # catch partial failures
     resid[np.isnan(resid)] = np.inf
     return resid
@@ -458,25 +483,16 @@ if __name__=="__main__":
   # evaluate obj and jac with one partition
   test_1 = False
   if test_1 == True:
-    prob = QAProb1(n_partitions=1,max_mode=1)
+    prob = QAProb1(vmec_input="input.nfp2_QA",n_partitions=1,max_mode=1)
     x0 = prob.x0 
     import time
     t0 = time.time()
+    print(prob.aspect(x0),prob.iota(x0))
     raw = prob.raw(x0)
     print(raw)
-    print(len(raw))
-    print("\n\n\n")
-    print('eval time',time.time() - t0)
-    resid = prob.residuals(x0)
-    print(resid)
-    print(resid-raw)
-    print(prob.eval(x0,raw))
-    print(prob.eval(x0))
-    t0 = time.time()
-    jac = prob.jac(x0,method='forward',h=1e-7)
-    print("\n\n\n")
-    print('jac time',time.time() - t0)
-    print(jac)
+    print(prob.residuals(x0))
+    print(prob.iota(x0)-prob.iota_target)
+    print(prob.vmec.mean_iota() - 0.42)
   
   # test 2:
   # evaluate obj and jac with multiple partition
