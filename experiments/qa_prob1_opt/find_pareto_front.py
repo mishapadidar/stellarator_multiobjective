@@ -46,8 +46,8 @@ def find_pareto_front(datadir,save=True,from_scratch=True):
     print('loading',ff)
     indata = pickle.load(open(ff,"rb"))
     RX = indata['RawX']
-    qs_mse = np.mean(RX[:,:-1]**2,axis=1)
-    asp = RX[:,-1]
+    qs_mse = np.mean(RX[:,:-2]**2,axis=1)
+    asp = RX[:,-2]
 
     # truncate data to [3,10]
     idx_trunc = np.logical_and(asp>=3,asp<=10)
