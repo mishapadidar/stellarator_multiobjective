@@ -24,7 +24,7 @@ and A is the aspect ratio.
 
 We solve
      min Q(x)
-s.t. A(x) <= A*
+s.t. A(x) == A*
 
 with a penalty approach
   p(x) = Q(x) + pen*max(0,A(x)-A*)**2
