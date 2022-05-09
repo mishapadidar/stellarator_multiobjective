@@ -112,7 +112,7 @@ max_iter = 50 # evals per iteration
 ftarget  = 1e-11
 ftol_abs = ftarget*1e-5
 kkt_tol  = 1e-7 
-max_solves = 2 # number of penalty updates
+max_solves = 3 # number of penalty updates
 pen0    = 1e3 # initial penalty param.
 pen_inc = 10.0 # increase parameter
 ctol    = 1e-6 # target constraint tolerance
@@ -157,7 +157,8 @@ def PenaltyObjective(xx):
   qs_mse = np.mean(prob.qs_residuals(xx)**2)
   iota_res = prob.iota(xx) - prob.iota_target
   asp_res = prob.aspect(xx) - aspect_target
-  ret = qs_mse + pen_param[0]*max(asp_res,0)**2 + pen_param[1]*(iota_res)**2
+  #ret = qs_mse + pen_param[0]*max(asp_res,0)**2 + pen_param[1]*(iota_res)**2
+  ret = qs_mse + pen_param[0]*(asp_res)**2 + pen_param[1]*(iota_res)**2
   if master:
     print(f'f(x): {ret}, qs mse: {qs_mse}, asp_res: {asp_res}, iota_res: {iota_res}')
   return ret
@@ -173,7 +174,8 @@ def PenaltyResiduals(xx):
   asp = raw[-2] 
   iota = raw[-1]
   # compute residual
-  raw[-2] = max(asp - aspect_target,0)
+  #raw[-2] = max(asp - aspect_target,0)
+  raw[-2] = asp - aspect_target
   raw[-1] = iota - prob.iota_target
   # weight the residuals
   raw[:-2] *= np.sqrt(1.0/prob.n_qs_residuals)
@@ -204,10 +206,12 @@ def JacPenaltyResiduals(xx,idx=range(dim_x),h=1e-7):
   # dont save the center point b/c it has already been saved
   #func_wrap.X = np.append(func_wrap.X,Ep[:-1],axis=0)
   #func_wrap.FX = np.append(func_wrap.FX,Fp[:-1],axis=0)
-  # make sure to take gradient of max
-  asp = prob.aspect(xx)
-  if asp -aspect_target <= 0.0:
-    jac[-2] = 0.0
+
+  ## make sure to take gradient of max
+  #asp = prob.aspect(xx)
+  #if asp -aspect_target <= 0.0:
+  #  jac[-2] = 0.0
+
   # weight the residuals
   jac[:-2] *= np.sqrt(1.0/prob.n_qs_residuals)
   jac[-2] *= np.sqrt(pen_param[0])
@@ -229,6 +233,7 @@ for ii in range(max_solves):
   if master:
     print("\n")
     print("iteration",ii)
+    print("pen_param",pen_param)
   xopt = GaussNewton(PenaltyResiduals,JacPenaltyResiduals,x0,max_iter=max_iter,ftarget=ftarget,ftol_abs=ftol_abs,gtol=1e-10)
   fopt = PenaltyObjective(xopt)
   copt = Constraint(xopt)
@@ -285,7 +290,8 @@ for ii in range(max_solves):
     
   # reset for next iter
   x0 = np.copy(xopt)
-  if copt >=ctol:
+  #if copt >=ctol:
+  if np.abs(aspect_opt-aspect_target) >=ctol:
     # only increase penalty if infeasible
     pen_param[0] = pen_inc*pen_param[0]
   if np.abs(iota_opt-prob.iota_target) >=ctol:
