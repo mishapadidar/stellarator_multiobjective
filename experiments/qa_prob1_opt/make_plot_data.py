@@ -27,10 +27,12 @@ def collect_function_values(datadir,from_scratch=True):
     indata = pickle.load(open(outfilename,"rb"))
     aspect_list = indata['aspect']
     qs_list = indata['qs_mse']
+    iota_list = indata['iota']
     processed = indata['filelist']
   else:
     aspect_list = np.zeros(0)
     qs_list  = np.zeros(0)
+    iota_list = np.zeros(0)
     processed = []
 
   for ff in filelist:
@@ -44,25 +46,29 @@ def collect_function_values(datadir,from_scratch=True):
     print('loading',ff)
     indata = pickle.load(open(ff,"rb"))
     RX = indata['RawX']
-    qs_mse = np.mean(RX[:,:-1]**2,axis=1)
-    asp = RX[:,-1]
+    qs_mse = np.mean(RX[:,:-2]**2,axis=1)
+    asp = RX[:,-2]
+    iota = RX[:,-1]
 
     # append new data to lists
     aspect_list = np.append(aspect_list,asp)
     qs_list = np.append(qs_list,qs_mse)
+    iota_list = np.append(iota_list,iota)
 
     # only keep finite values
     idx_fin = np.isfinite(qs_list)
     aspect_list = aspect_list[idx_fin]
     qs_list = qs_list[idx_fin]
+    iota_list = iota_list[idx_fin]
  
     outdata = {}
     outdata['aspect'] = aspect_list
     outdata['qs_mse'] = qs_list
+    outdata['iota'] = iota_list
     outdata['filelist'] = processed
     pickle.dump(outdata,open(outfilename,"wb"))
-  return aspect_list,qs_list
+  return aspect_list,qs_list,iota_list
 
 
 if __name__=="__main__":
-  collect_function_values("./data",from_scratch=False)
+  collect_function_values("./data",from_scratch=True)
