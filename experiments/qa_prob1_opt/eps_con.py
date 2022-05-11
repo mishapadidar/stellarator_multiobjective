@@ -108,7 +108,7 @@ qs_mse0 = F0[0]
 if master:
   print(f"Starting with qs mse {qs_mse0} and aspect {aspect0} and mean iota {iota0}.")
 
-max_iter = 50 # evals per iteration
+max_iter = 100 # evals per iteration
 ftarget  = 1e-11
 ftol_abs = ftarget*1e-5
 kkt_tol  = 1e-7 

@@ -1,9 +1,9 @@
 
 #ASPECTS=('3.5' '4.5' '5.5' '6.5' '7.5' '8.5' '9.5') 
 ASPECTS=('3.0' '4.0' '5.0' '6.0' '7.0' '8.0' '9.0' '10.0') 
-warm="False"
-vmec="low" 
-maxmode=2
+warm="True"
+vmec="high" 
+maxmode=5
 NODES=1
 CORES=12
 for idx in ${!ASPECTS[@]}
