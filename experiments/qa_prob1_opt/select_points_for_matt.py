@@ -13,6 +13,7 @@ Select pareto points for matt
 
 # load data
 infilename = "./data/pareto_optimal_points.pickle"
+#infilename = "./data/warm_start_points.pickle"
 indata = pickle.load(open(infilename,"rb"))
 X = indata['X']
 FX = indata['FX']
@@ -28,6 +29,7 @@ for idx in range(len(X)):
   max_mode = max_modes[len(x0)]
   if max_mode < 5:
     continue
+  
   prob = qa_prob1.QAProb1(max_mode=max_mode,vmec_input = vmec_input)
   # evaluate the point
   raw = prob.raw(x0)
