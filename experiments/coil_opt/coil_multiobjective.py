@@ -27,7 +27,7 @@ ntheta=nphi=32
 surf = SurfaceRZFourier.from_vmec_input(vmec_input, range="half period", nphi=nphi, ntheta=ntheta)
 R0 = surf.get("rc(0,0)")
 R1 = R0/2
-print(R0,R1)
+
 # Create the initial coils:
 base_curves = create_equally_spaced_curves(ncoils, surf.nfp, stellsym=True, R0=R0, R1=R1, order=order)
 base_currents = [Current(1.0) * 1e5 for i in range(ncoils)]
@@ -45,33 +45,63 @@ Jtotal_length = sum(Jlengths)
 n_penalty_solves = 4
 penalty_gamma = 10
 
-for length_target in length_target_list:
 
+#options = {'gtol':gtol, 'maxiter': maxiter, 'maxcor': 300, 'iprint': 5}
+options = {'gtol':gtol, 'maxiter': maxiter, 'maxcor': 300}
+
+for li, length_target in enumerate(length_target_list):
+
+    print("")
+    print(f"Solve {li})")
+    print("constraint bound:",length_target)
+    print("initital Bnormal:",Jflux.J())
+    print("initial constraint violation:",max(Jtotal_length.J()-length_target,0.0))
+
+    # initial run params
     length_weight = 1.0
 
     # penalty solve
     for ii in range(n_penalty_solves):
     
+        # penalty objective
         length_weight = length_weight * penalty_gamma
         JF = Jflux + length_weight * QuadraticPenalty(Jtotal_length, length_target, f='max')
         def fun(dofs):
             JF.x = dofs
             return JF.J(), JF.dJ()
+      
+        # get starting point
+        if (li == 0) and (ii == 0):
+            x0 = np.copy(JF.x)
+            dofs = np.copy(x0)
+        elif (li != 0) and (ii == 0):
+            dofs = np.copy(x0)
+        else:
+            dofs = np.copy(xopt)
     
-        dofs = JF.x
+        # solve
         res = minimize(fun, dofs, jac=True, method='L-BFGS-B',
-                       options={'gtol':gtol, 'maxiter': maxiter, 'maxcor': 300, 'iprint': 5}, tol=1e-15)
+                       options=options, tol=1e-15)
         xopt = res.x
+
+        # print some stuff
         JF.x = xopt
         Fopt = np.array([Jflux.J(),Jtotal_length.J()])
         print("Fopt",Fopt)
     
+    print("final Bnormal:",Jflux.J())
+    print("final constraint violation:",max(Jtotal_length.J()-length_target,0.0))
+
     # Save the optimized coil shapes and currents so they can be loaded into other scripts for analysis:
     outputdir = "./output"
-    outfilename = outputdir + f"/coils_eps_con_length_{length_target}.json"
+    outfilename = outputdir + f"/coils_eps_con_length_{length_target}.pickle"
     outdata = {}
     outdata['xopt'] = xopt
     outdata['length_target'] = length_target
     outdata['Fopt'] = Fopt
+    outdata['ncoils'] = ncoils
+    outdata['order'] = order
+    outdata['ntheta'] = ntheta
+    outdata['nphi'] = nphi
     pickle.dump(outdata, open(outfilename,"wb"))
     
