@@ -5,16 +5,28 @@ import pickle
 from scipy.optimize import minimize
 
 from simsopt.geo import SurfaceRZFourier, create_equally_spaced_curves, \
-    CurveLength, curves_to_vtk, MeanSquaredCurvature
+    CurveLength, curves_to_vtk, MeanSquaredCurvature, CurveSurfaceDistance
 from simsopt.field import Current, coils_via_symmetries, BiotSavart
 from simsopt.objectives import SquaredFlux, QuadraticPenalty
 
 # initial problem params
 constraint_name = 'length' # length or curvature
 #constraint_name = 'curvature' # length or curvature
-# optimization params
-maxiter = 500
+
+# warm start
+#start_type = "warm" # warm or cold
+start_type = "cold" # warm or cold
+
+# penalty options
+n_penalty_solves = 3
+penalty_gamma = 10
+initial_penalty_weight = 0.1
+
+# solver options
+maxiter = 600
 gtol = 1e-6
+options = {'gtol':gtol, 'maxiter': maxiter, 'maxcor': 300} #'iprint': 5}
+
 # coil params
 ncoils = 4
 order = 5 # num fourier modes per coils
@@ -22,12 +34,6 @@ current = 1e5
 # surface definition
 vmec_input = '../../vmec_input_files/input.LandremanPaul2021_QA'
 ntheta=nphi=32
-# define the objective
-n_penalty_solves = 3
-penalty_gamma = 10
-initial_penalty_weight = 0.1
-# solver options
-options = {'gtol':gtol, 'maxiter': maxiter, 'maxcor': 300} #'iprint': 5}
 
 if constraint_name == 'length':
     constraint_target_list = np.linspace(5,50,100)
@@ -36,6 +42,10 @@ elif constraint_name == 'curvature':
     constraint_target_list = np.linspace(5,50,100)
 else:
     raise ValueError("invalid constraint name")
+
+##################################
+## Done with options
+##################################
 
 objective_names = ['Quadratic flux'] + [constraint_name]
 
@@ -58,6 +68,11 @@ Jlength = [CurveLength(c) for c in base_curves]
 Jlength_total = sum(Jlength)
 Jmsc = [MeanSquaredCurvature(c) for c in base_curves]
 Jmsc_total = sum(Jmsc)
+# coil to surface distance
+coil_surf_dist_penalty_weight = 100
+coil_surf_dist_rhs = 0.01
+Jcoil_surf_dist = CurveSurfaceDistance(base_curves,surf,coil_surf_dist_rhs)
+
 
 if constraint_name == "length":
     constraint = Jlength_total
@@ -73,6 +88,7 @@ for li, constraint_target in enumerate(constraint_target_list):
     print("initital Bnormal:",Jflux.J())
     print("initial constraint:",constraint.J())
     print("initial constraint violation:",max(constraint.J()-constraint_target,0.0))
+    print("initial cs-dist:",Jcoil_surf_dist.shortest_distance())
 
     # initial run params
     penalty_weight = initial_penalty_weight
@@ -82,7 +98,8 @@ for li, constraint_target in enumerate(constraint_target_list):
     
         # penalty objective
         penalty_weight = penalty_weight * penalty_gamma
-        JF = Jflux + penalty_weight * QuadraticPenalty(constraint,constraint_target, f='max')
+        JF = Jflux + penalty_weight * QuadraticPenalty(constraint,constraint_target, f='max')\
+            + coil_surf_dist_penalty_weight*Jcoil_surf_dist
         def fun(dofs):
             JF.x = dofs
             return JF.J(), JF.dJ()
@@ -103,32 +120,40 @@ for li, constraint_target in enumerate(constraint_target_list):
         print(f"P{ii} Bnormal:",Jflux.J())
         print(f"P{ii} constraint:",constraint.J())
         print(f"P{ii} constraint violation:",max(constraint.J()-constraint_target,0.0))
+        print(f"P{ii} cs-dist:",Jcoil_surf_dist.shortest_distance())
     
     print("final Bnormal:",Jflux.J())
     print("final constraint:",constraint.J())
     print("final constraint violation:",max(constraint.J()-constraint_target,0.0))
+    print("final cs-dist:",Jcoil_surf_dist.shortest_distance())
 
     # set starting point for next solve
-    #JF.x = np.copy(x0)
-    #dofs = np.copy(x0)
-    JF.x = np.copy(xopt)
-    dofs = np.copy(xopt)
+    if start_type == "warm":
+        JF.x = np.copy(xopt)
+        dofs = np.copy(xopt)
+    else:
+        JF.x = np.copy(x0)
+        dofs = np.copy(x0)
 
     # Save the optimized coil shapes and currents so they can be loaded into other scripts for analysis:
     outputdir = f"./output/biobjective/{constraint_name}"
     if not os.path.exists(outputdir):
         os.makedirs(outputdir)
-    outfilename = outputdir + f"/biobjective_eps_con_{constraint_name}_{constraint_target}.pickle"
+    outfilename = outputdir + f"/biobjective_eps_con_{constraint_name}_{constraint_target}_{start_type}.pickle"
     outdata = {}
     outdata['xopt'] = xopt
     outdata['constraint_target'] = constraint_target
     outdata['Fopt'] = Fopt
+    outdata['start_type'] = start_type
     outdata['ncoils'] = ncoils
     outdata['order'] = order
     outdata['ntheta'] = ntheta
     outdata['nphi'] = nphi
     outdata['objective_names'] = objective_names
     outdata['constraint_name'] = constraint_name
+    outdata['coil_surf_dist_penalty_weight'] = coil_surf_dist_penalty_weight
+    outdata['coil_surf_dist_rhs'] = coil_surf_dist_rhs
+    outdata['min_coil_surf_dist'] = Jcoil_surf_dist.shortest_distance()
     pickle.dump(outdata, open(outfilename,"wb"))
 
     
