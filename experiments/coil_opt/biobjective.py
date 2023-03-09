@@ -20,7 +20,7 @@ i.e.
 if debug:
     # no cmd line args
     constraint_name = 'length'
-    constraint_target_list = np.linspace(5,50,100)
+    constraint_target_list = np.linspace(10,50,80)
     start_type = "cold"
     ncoils = 4
 else:
@@ -37,12 +37,12 @@ penalty_gamma = 10
 initial_penalty_weight = 0.1
 
 # solver options
-maxiter = 600
+maxiter = 500
 gtol = 1e-6
 options = {'gtol':gtol, 'maxiter': maxiter, 'maxcor': 300} #'iprint': 5}
 
 # coil-surface distance params
-coil_surf_dist_penalty_weight = 100
+coil_surf_dist_penalty_weight = 1e4
 coil_surf_dist_rhs = 0.01
 
 # coil params
@@ -75,6 +75,10 @@ base_currents[0].fix_all()
 coils = coils_via_symmetries(base_curves, base_currents, surf.nfp, True)
 bs = BiotSavart(coils)
 bs.set_points(surf.gamma().reshape((-1, 3)))
+
+# write vtk files
+#curves = [c.curve for c in coils]
+#curves_to_vtk(curves, "coils_init")
 
 # Define the individual terms objective function:
 Jflux = SquaredFlux(surf, bs)
@@ -139,14 +143,6 @@ for li, constraint_target in enumerate(constraint_target_list):
     print("final constraint violation:",max(constraint.J()-constraint_target,0.0))
     print("final cs-dist:",Jcoil_surf_dist.shortest_distance())
 
-    # set starting point for next solve
-    if start_type == "warm":
-        JF.x = np.copy(xopt)
-        dofs = np.copy(xopt)
-    else:
-        JF.x = np.copy(x0)
-        dofs = np.copy(x0)
-
     # Save the optimized coil shapes and currents so they can be loaded into other scripts for analysis:
     outputdir = f"./output/biobjective/{constraint_name}"
     if not os.path.exists(outputdir):
@@ -170,7 +166,15 @@ for li, constraint_target in enumerate(constraint_target_list):
     pickle.dump(outdata, open(outfilename,"wb"))
 
     # write vtk files
-    curves = [c.curve for c in coils]
+    curves = [c.curve for c in bs.coils]
     outfilename = outputdir + filename_body
     curves_to_vtk(curves, outfilename)
     
+    # set starting point for next solve
+    if start_type == "warm":
+        JF.x = np.copy(xopt)
+        dofs = np.copy(xopt)
+    else:
+        JF.x = np.copy(x0)
+        dofs = np.copy(x0)
+
