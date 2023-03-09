@@ -3,19 +3,33 @@ from pathlib import Path
 import numpy as np
 import pickle
 from scipy.optimize import minimize
-
+import sys
 from simsopt.geo import SurfaceRZFourier, create_equally_spaced_curves, \
     CurveLength, curves_to_vtk, MeanSquaredCurvature, CurveSurfaceDistance
 from simsopt.field import Current, coils_via_symmetries, BiotSavart
 from simsopt.objectives import SquaredFlux, QuadraticPenalty
+debug = False
 
-# initial problem params
-constraint_name = 'length' # length or curvature
-#constraint_name = 'curvature' # length or curvature
+"""
+Run with 
+  mpiexec -n 1 python3 biobjective.py ${constraint_name} ${constraint_target} ${start_type} ${ncoils}
+i.e.
+  mpiexec -n 1 python3 biobjective.py length 5.0 warm 4
+"""
 
-# warm start
-#start_type = "warm" # warm or cold
-start_type = "cold" # warm or cold
+if debug:
+    # no cmd line args
+    constraint_name = 'length'
+    constraint_target_list = np.linspace(5,50,100)
+    start_type = "cold"
+    ncoils = 4
+else:
+    # cmd line args
+    constraint_name = sys.argv[1] # length or curvature
+    constraint_target_list = [float(sys.argv[2])] # float, typically in (5,50)
+    start_type = sys.argv[3] # warm or cold
+    ncoils = int(sys.argv[4]) # default is 4
+
 
 # penalty options
 n_penalty_solves = 3
@@ -27,21 +41,18 @@ maxiter = 600
 gtol = 1e-6
 options = {'gtol':gtol, 'maxiter': maxiter, 'maxcor': 300} #'iprint': 5}
 
+# coil-surface distance params
+coil_surf_dist_penalty_weight = 100
+coil_surf_dist_rhs = 0.01
+
 # coil params
-ncoils = 4
+#ncoils = 4
 order = 5 # num fourier modes per coils
 current = 1e5
 # surface definition
 vmec_input = '../../vmec_input_files/input.LandremanPaul2021_QA'
 ntheta=nphi=32
 
-if constraint_name == 'length':
-    constraint_target_list = np.linspace(5,50,100)
-elif constraint_name == 'curvature':
-    # TODO: fix the curvature targets
-    constraint_target_list = np.linspace(5,50,100)
-else:
-    raise ValueError("invalid constraint name")
 
 ##################################
 ## Done with options
@@ -53,6 +64,9 @@ objective_names = ['Quadratic flux'] + [constraint_name]
 surf = SurfaceRZFourier.from_vmec_input(vmec_input, range="half period", nphi=nphi, ntheta=ntheta)
 R0 = surf.get("rc(0,0)")
 R1 = R0/2
+
+# plot the surface
+surf.to_vtk("surf")
 
 # Create the initial coils:
 base_curves = create_equally_spaced_curves(ncoils, surf.nfp, stellsym=True, R0=R0, R1=R1, order=order)
@@ -69,8 +83,6 @@ Jlength_total = sum(Jlength)
 Jmsc = [MeanSquaredCurvature(c) for c in base_curves]
 Jmsc_total = sum(Jmsc)
 # coil to surface distance
-coil_surf_dist_penalty_weight = 100
-coil_surf_dist_rhs = 0.01
 Jcoil_surf_dist = CurveSurfaceDistance(base_curves,surf,coil_surf_dist_rhs)
 
 
@@ -139,7 +151,8 @@ for li, constraint_target in enumerate(constraint_target_list):
     outputdir = f"./output/biobjective/{constraint_name}"
     if not os.path.exists(outputdir):
         os.makedirs(outputdir)
-    outfilename = outputdir + f"/biobjective_eps_con_{constraint_name}_{constraint_target}_{start_type}.pickle"
+    filename_body = f"/biobjective_eps_con_{constraint_name}_{constraint_target}_{start_type}_ncoils_{ncoils}"
+    outfilename = outputdir + filename_body + ".pickle"
     outdata = {}
     outdata['xopt'] = xopt
     outdata['constraint_target'] = constraint_target
@@ -156,4 +169,8 @@ for li, constraint_target in enumerate(constraint_target_list):
     outdata['min_coil_surf_dist'] = Jcoil_surf_dist.shortest_distance()
     pickle.dump(outdata, open(outfilename,"wb"))
 
+    # write vtk files
+    curves = [c.curve for c in coils]
+    outfilename = outputdir + filename_body
+    curves_to_vtk(curves, outfilename)
     
