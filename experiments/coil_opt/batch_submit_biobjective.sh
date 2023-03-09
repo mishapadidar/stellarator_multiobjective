@@ -1,8 +1,8 @@
 
 
 constraint_name='length' # length, curvature
-constraint_targets=($(seq 5 0.5 50))  # start, step, last
-start_type="warm"
+constraint_targets=($(seq 10 0.5 50))  # start, step, last
+start_type="cold" # TODO: this doesnt make a difference rn
 ncoils=4
 
 for idx in ${!constraint_targets[@]}
