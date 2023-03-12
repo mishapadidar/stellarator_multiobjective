@@ -2,11 +2,11 @@
 # each core runs one epsilon constraint solve
 
 constraint_name='curvature' # 'curvature' or 'cc dist'
-constraint_targets=($(seq 5 0.5 100))  # start, step, last
-length_targets=($(seq 8 0.5 30))  # start, step, last
+constraint_targets=($(seq 5 1.0 100))  # start, step, last
+length_targets=($(seq 8 1.0 30))  # start, step, last
 ncoils=4 # 3 or 4
 
-for idx1 in ${!constraint_targets[@]}
+for idx1 in ${!length_targets[@]}
 do
   length_target=${length_targets[idx1]}
 
