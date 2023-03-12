@@ -8,27 +8,35 @@ from simsopt.geo import SurfaceRZFourier, create_equally_spaced_curves, \
     CurveLength, curves_to_vtk, MeanSquaredCurvature, CurveSurfaceDistance
 from simsopt.field import Current, coils_via_symmetries, BiotSavart
 from simsopt.objectives import SquaredFlux, QuadraticPenalty
-debug = False
 
 """
 Run with 
   mpiexec -n 1 python3 biobjective.py ${constraint_name} ${constraint_target} ${start_type} ${ncoils}
 i.e.
   mpiexec -n 1 python3 biobjective.py length 5.0 warm 4
+
+To use the warm start option, run in 'warm_mode' mode.
+In warm mode, epsilon constraint problems are solved in sequence, warm
+starting one solve from the solution of the previous.
+
+If not using the warm start option, then i suggest submitting the 
+jobs to slurm using ./batch_submit_biobjective.sh
 """
 
-if debug:
+warm_mode = False
+if warm_mode:
     # no cmd line args
     constraint_name = 'length'
-    constraint_target_list = np.linspace(10,50,80)
-    start_type = "cold"
+    constraint_target_list = np.linspace(15.12345,11.3829,9)
+    start_type = "warm"
     ncoils = 4
 else:
     # cmd line args
     constraint_name = sys.argv[1] # length or curvature
     constraint_target_list = [float(sys.argv[2])] # float, typically in (5,50)
-    start_type = sys.argv[3] # warm or cold
-    ncoils = int(sys.argv[4]) # default is 4
+    ncoils = int(sys.argv[3]) # default is 4
+    # only can do cold starts in batch mode
+    start_type = "cold"
 
 
 # penalty options
@@ -37,16 +45,15 @@ penalty_gamma = 10
 initial_penalty_weight = 0.1
 
 # solver options
-maxiter = 500
+maxiter = 2000
 gtol = 1e-6
 options = {'gtol':gtol, 'maxiter': maxiter, 'maxcor': 300} #'iprint': 5}
 
 # coil-surface distance params
-coil_surf_dist_penalty_weight = 1e4
+coil_surf_dist_penalty_weight = 1e6
 coil_surf_dist_rhs = 0.01
 
 # coil params
-#ncoils = 4
 order = 5 # num fourier modes per coils
 current = 1e5
 # surface definition
@@ -64,6 +71,8 @@ objective_names = ['Quadratic flux'] + [constraint_name]
 surf = SurfaceRZFourier.from_vmec_input(vmec_input, range="half period", nphi=nphi, ntheta=ntheta)
 R0 = surf.get("rc(0,0)")
 R1 = R0/2
+
+print('surf minor radius',surf.minor_radius())
 
 # plot the surface
 surf.to_vtk("surf")
