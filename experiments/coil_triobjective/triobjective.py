@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import uuid
 import numpy as np
 import pickle
 from scipy.optimize import minimize
@@ -11,40 +12,26 @@ from simsopt.objectives import SquaredFlux, QuadraticPenalty
 
 """
 Run with 
-  mpiexec -n 1 python3 triobjective.py ${constraint_name} ${constraint_target} ${start_type} ${ncoils}
+  mpiexec -n 1 python3 triobjective.py ${constraint_name} ${constraint_target} ${length_target} ${ncoils} ${start_type} 
 i.e.
-  mpiexec -n 1 python3 triobjective.py length 5.0 warm 4
-
-To use the warm start option, run in 'warm_mode' mode.
-In warm mode, epsilon constraint problems are solved in sequence, warm
-starting one solve from the solution of the previous.
-
-If not using the warm start option, then i suggest submitting the 
-jobs to slurm using ./batch_submit.sh
+  mpiexec -n 1 python3 triobjective.py curvature 12.0 16.0 4 cold
 """
 
-warm_mode = False
-if warm_mode:
-    # no cmd line args
-    constraint_name = 'curvature' # curvature or coil-coil dist
-    constraint_target_list = np.linspace(1,50.0,2)
-    length_target_list = np.linspace(8.0,28.0,3)
-    start_type = "warm"
-    ncoils = 4
+# cmd line args
+constraint_name = sys.argv[1]  # curvature or coil-coil dist
+length_target_list = [float(sys.argv[3])] # float, length target 
+ncoils = int(sys.argv[4]) # default is 4
+start_type = sys.argv[5] # 'warm' or 'cold'
+if start_type == "warm":
+    constraint_target_list = np.linspace(5,50.0,100)[::-1]
 else:
-    # cmd line args
-    constraint_name = sys.argv[1]  # curvature or coil-coil dist
-    constraint_target_list = [float(sys.argv[2])] # float, typically in (5,50)
-    length_target_list = [float(sys.argv[3])]
-    ncoils = int(sys.argv[4]) # default is 4
-    # only can do cold starts in batch mode
-    start_type = "cold"
+    constraint_target_list = [float(sys.argv[2])] # float, typically in (8,50)
 
 
 # penalty options
 n_penalty_solves = 3
 penalty_gamma = 10
-initial_penalty_weights = [0.1,0.1] # length, curvature
+initial_penalty_weights = [0.1,1.0] # length, curvature
 
 # solver options
 maxiter = 2000
@@ -75,6 +62,7 @@ R0 = surf.get("rc(0,0)")
 R1 = R0/2
 
 print('surf minor radius',surf.minor_radius())
+print('surf area',surf.area())
 
 # plot the surface
 surf.to_vtk("surf")
@@ -173,7 +161,9 @@ for li, length_target in enumerate(length_target_list):
         outputdir = f"./output/triobjective/{constraint_name}"
         if not os.path.exists(outputdir):
             os.makedirs(outputdir)
-        filename_body = f"/triobjective_eps_con_length_{length_target}_{constraint_name}_{constraint_target}_{start_type}_ncoils_{ncoils}"
+        # generate a unique id
+        iden = str(uuid.uuid4())
+        filename_body = f"/triobjective_eps_con_length_{length_target}_{constraint_name}_{constraint_target}_{start_type}_ncoils_{ncoils}" + f"_{iden}"
         outfilename = outputdir + filename_body + ".pickle"
         outdata = {}
         outdata['xopt'] = xopt

@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import numpy as np
 import pickle
+import uuid
 from scipy.optimize import minimize
 import sys
 from simsopt.geo import SurfaceRZFourier, create_equally_spaced_curves, \
@@ -156,7 +157,9 @@ for li, constraint_target in enumerate(constraint_target_list):
     outputdir = f"./output/biobjective/{constraint_name}"
     if not os.path.exists(outputdir):
         os.makedirs(outputdir)
-    filename_body = f"/biobjective_eps_con_{constraint_name}_{constraint_target}_{start_type}_ncoils_{ncoils}"
+    iden = str(uuid.uuid4())
+    filename_body = f"/biobjective_eps_con_{constraint_name}_{constraint_target}_{start_type}_ncoils_{ncoils}"\
+                  + f"_{iden}"
     outfilename = outputdir + filename_body + ".pickle"
     outdata = {}
     outdata['xopt'] = xopt
