@@ -35,16 +35,29 @@ idx_pareto = is_pareto_efficient(FX)
 aspect_pareto = FX[idx_pareto,0]
 qs_pareto = FX[idx_pareto,1]
 
+# turn qs_mse back to qs ratio residual
+qs_pareto = 44352*qs_pareto
 
 # plot
 fig,ax = plt.subplots(figsize=(8,8))
 if plot_all_points:
   plt.scatter(aspect_list,qs_list,alpha=0.5)
-plt.scatter(aspect_pareto,qs_pareto,s=30,color='k',label='pareto front')
+#plt.scatter(aspect_pareto,qs_pareto,s=30,color='k',label='pareto front',rasterized=True)
+plt.scatter(aspect_pareto,qs_pareto,s=30,color='k',rasterized=True,zorder=100)
 plt.xlabel('Aspect Ratio')
-plt.ylabel('Quasisymmetry MSE')
+plt.ylabel('Quasisymmetry Ratio Residual')
 plt.yscale('log')
-plt.legend(loc='upper right')
+#plt.legend(loc='upper right')
+
+# set the yticks
+plt.yticks([1e-3,3.162e-4,1e-4,3.162e-5,1e-5])
+ticks,labels= plt.yticks()
+labels[2] = ""
+plt.yticks(ticks,labels)
+
+ax.yaxis.set_label_coords(-0.035,0.5)
+
+plt.grid(linewidth=2,zorder=1)
   
 # darken the border
 ax.patch.set_edgecolor('black')  
