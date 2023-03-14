@@ -28,7 +28,7 @@ warm_mode = False
 if warm_mode:
     # no cmd line args
     constraint_name = 'length'
-    constraint_target_list = np.linspace(15.12345,11.3829,9)
+    constraint_target_list = np.linspace(8.0,25.0,34)[::-1]
     start_type = "warm"
     ncoils = 4
 else:
@@ -76,7 +76,14 @@ R1 = R0/2
 print('surf minor radius',surf.minor_radius())
 
 # plot the surface
-surf.to_vtk("surf")
+quadpoints_phi = np.linspace(0,1,128)
+quadpoints_theta = np.linspace(0,1,128)
+surf_plot = SurfaceRZFourier.from_vmec_input(vmec_input, quadpoints_phi=quadpoints_phi, quadpoints_theta=quadpoints_theta)
+surf_plot.to_vtk("surf_full")
+quadpoints_phi = np.linspace(0,1/surf.nfp/2,128)
+quadpoints_theta = np.linspace(0,1,128)
+surf_plot = SurfaceRZFourier.from_vmec_input(vmec_input, quadpoints_phi=quadpoints_phi, quadpoints_theta=quadpoints_theta)
+surf_plot.to_vtk("surf_half_period")
 
 # Create the initial coils:
 base_curves = create_equally_spaced_curves(ncoils, surf.nfp, stellsym=True, R0=R0, R1=R1, order=order)
@@ -178,9 +185,9 @@ for li, constraint_target in enumerate(constraint_target_list):
     pickle.dump(outdata, open(outfilename,"wb"))
 
     # write vtk files
-    curves = [c.curve for c in bs.coils]
+    #curves = [c.curve for c in bs.coils]
     outfilename = outputdir + filename_body
-    curves_to_vtk(curves, outfilename)
+    curves_to_vtk(base_curves, outfilename,close=True)
     
     # set starting point for next solve
     if start_type == "warm":
