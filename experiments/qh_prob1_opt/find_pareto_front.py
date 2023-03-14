@@ -82,4 +82,4 @@ def find_pareto_front(datadir,save=True,from_scratch=True,asp_lb=3.0,asp_ub=10.0
 
 
 if __name__=="__main__":
-  find_pareto_front("./data",save=True,from_scratch=False)
+  find_pareto_front("./data",save=True,from_scratch=True)
