@@ -58,7 +58,7 @@ plt.setp([ax1,ax2,ax3,ax4], xticks=[0,np.pi/2], xticklabels=['0','$\pi$/2'],
 from matplotlib import ticker
 tick_font_size = 16
 for ax,p in ((ax1,p1),(ax2,p2),(ax3,p3),(ax4,p4)):
-  cbar = plt.colorbar(p,ax=ax)
+  cbar = plt.colorbar(p,ax=ax,format="%.2f")
   cbar.locator = ticker.MaxNLocator(nbins=6)
   cbar.ax.tick_params(labelsize=tick_font_size)
   cbar.update_ticks()
