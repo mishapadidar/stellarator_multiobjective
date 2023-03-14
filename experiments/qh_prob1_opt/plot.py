@@ -18,7 +18,7 @@ matplotlib.rcParams.update({'font.size': 16})
 plot QS^2 error via aspect
 """
 
-plot_all_points = True
+plot_all_points = False
 
 # load data
 indata = pickle.load(open("./data/function_values.pickle","rb"))
@@ -37,18 +37,25 @@ qs_pareto = FX[idx_pareto,1]
 
 
 # plot
-plt.figure(figsize=(10,8))
+fig,ax = plt.subplots(figsize=(8,8))
 if plot_all_points:
   plt.scatter(aspect_list,qs_list,alpha=0.5)
-plt.scatter(aspect_pareto,qs_pareto,s=20,color='r',label='pareto front')
+plt.scatter(aspect_pareto,qs_pareto,s=30,color='k',label='pareto front')
 plt.xlabel('Aspect Ratio')
 plt.ylabel('Quasisymmetry MSE')
 plt.yscale('log')
-plt.legend()
-plt.tight_layout()
-plt.savefig(fname="./pareto_plot.png",format='png')
-plt.show()
+plt.legend(loc='upper right')
   
+# darken the border
+ax.patch.set_edgecolor('black')  
+ax.patch.set_linewidth(2)  
 
+plt.tight_layout()
+
+
+filename = "aspect_qs_pareto_front.pdf"
+plt.savefig(filename, format="pdf", bbox_inches="tight")
+
+#plt.show()
 
 
