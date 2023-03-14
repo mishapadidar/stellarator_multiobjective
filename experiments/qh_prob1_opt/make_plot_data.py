@@ -65,4 +65,4 @@ def collect_function_values(datadir,from_scratch=True):
 
 
 if __name__=="__main__":
-  collect_function_values("./data",from_scratch=False)
+  collect_function_values("./data",from_scratch=True)
