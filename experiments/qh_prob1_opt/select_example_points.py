@@ -39,9 +39,17 @@ for aspect_target in aspect_list:
     n_partitions=1
     mpi = MpiPartition(n_partitions)
     vmec = Vmec(vmec_input, mpi=mpi,keep_all_files=False,verbose=False)
+    surf = vmec.boundary
+    surf.fix_all()
+    surf.fixed_range(mmin=0, mmax=max_mode,
+                     nmin=-max_mode, nmax=max_mode, fixed=False)
+    surf.fix("rc(0,0)") # fix the Major radius
+
+    surf.x = x0
     
     # generate the .wout data
     vmec.run()
+    print(vmec.aspect())
 
     # write an input file
     vmec.write_input(f"./data/input.nfp4_QH_aspect_{aspect_target}")
