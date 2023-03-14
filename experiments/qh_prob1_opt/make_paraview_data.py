@@ -65,8 +65,8 @@ for ii,vmec_input in enumerate(infile_list):
     bmnc = bmnc.T
     bmns = bmns.T
     
-    ntheta = 128
-    nphi = 150
+    ntheta = 256
+    nphi = 512
     theta1D = np.linspace(0,2*np.pi,num=ntheta)
     phi1D = np.linspace(0,2*np.pi,num=nphi)
     phi2D, theta2D = np.meshgrid(phi1D,theta1D)
