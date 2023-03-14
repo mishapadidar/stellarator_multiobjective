@@ -44,4 +44,4 @@ for aspect_target in aspect_list:
     vmec.run()
 
     # write an input file
-    vmec.write_input(f"./input.nfp4_QH_aspect_{aspect_target}")
+    vmec.write_input(f"./data/input.nfp4_QH_aspect_{aspect_target}")
