@@ -21,7 +21,8 @@ plot QS^2 error via aspect
 plot_all_points = False
 
 # load data
-indata = pickle.load(open("./data/function_values.pickle","rb"))
+#indata = pickle.load(open("./data/function_values.pickle","rb"))
+indata = pickle.load(open("./data/plot_data.pickle","rb"))
 aspect_list = indata['aspect']
 qs_list = indata['qs_mse']
 # truncate plot to [3,10]
