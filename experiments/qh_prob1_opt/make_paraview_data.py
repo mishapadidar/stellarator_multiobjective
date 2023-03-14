@@ -6,18 +6,18 @@ from simsopt.mhd import Vmec
 import pickle
 import sys
 
-
 """
 Make the data for paraview plotting
 
 usage:
   mpiexec -n 1 python3 make_paraview_data.py
 """
-infile_list = []
+infile_list = ["./data/input.nfp4_QH_aspect_3.5",
+              "./data/input.nfp4_QH_aspect_5.5",
+              "./data/input.nfp4_QH_aspect_8.7"]
 
 for ii,vmec_input in enumerate(infile_list):
 
-    vmec_input = "../../problem/input.nfp4_QH_warm_start_high_res"
     n_partitions=1
     mpi = MpiPartition(n_partitions)
     vmec = Vmec(vmec_input, mpi=mpi,keep_all_files=False,verbose=False)
@@ -90,7 +90,9 @@ for ii,vmec_input in enumerate(infile_list):
     B_rescaled = (B - B.min()) / (B.max() - B.min())
     
     # now make a vts file
-    filename = f"./data/nfp4_QH_aspect_{aspect_target}"
+    filename = vmec_input.split("/")[-1] # remove any directories
+    filename = filename[6:] # remove the "input."
+    filename = "./data/" + filename
     
     from pyevtk.hl import gridToVTK
     x=X.reshape((1, ntheta, nphi))
