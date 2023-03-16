@@ -16,7 +16,7 @@ usage:
   mpiexec -n 1 python3 select_example_points.py
 """
 # plot efficient points with these aspect ratios
-aspect_list = [3.5,5.5,8.7]
+aspect_list = [3,3.5,4.0,4.5,5.0,5.5,6.0,8.5,8.7,9.0]
 
 # load the pareto set
 infilename = "./data/pareto_optimal_points.pickle"
