@@ -67,6 +67,10 @@ for ii,infile in enumerate(filelist):
   mpi = MpiPartition(n_partitions)
   vmec = Vmec(vmec_input, mpi=mpi,keep_all_files=False,verbose=False)
   surf = vmec.boundary
+
+  #qsrr = QuasisymmetryRatioResidual(vmec,
+  #                            np.linspace(0,1,11),  # Radii to target
+  #                            helicity_m=1, helicity_n=-1)  # (M, N) you want in |B|
  
   # get the aspect ratio for rescaling the device
   aspect_ratio = surf.aspect_ratio()
@@ -155,6 +159,7 @@ for ii,infile in enumerate(filelist):
   aspect_list[ii] = aspect
 
   # save the data
-  outdata['c_times_surface'] = c_times_surface
-  outdata['aspect_list'] = aspect_list
-  pickle.dump(outdata,open(outfile,"wb"))
+  if rank == 0:
+    outdata['c_times_surface'] = c_times_surface
+    outdata['aspect_list'] = aspect_list
+    pickle.dump(outdata,open(outfile,"wb"))
