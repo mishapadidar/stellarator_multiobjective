@@ -74,7 +74,7 @@ fig,ax = plt.subplots(figsize=(8,8))
 
 linestyles=['-','--','-.']
 for ii in range(len(filelist)):
-    label = "%.1f"%aspects[ii]
+    label = "$A = %.1f$"%aspects[ii]
     ax.plot(R[ii,:,0], Z[ii,:,0], linewidth=2,linestyle=linestyles[ii],color=colors[ii],label=label)
     ax.plot(R[ii,:,1], Z[ii,:,1], linewidth=2,linestyle=linestyles[ii],color=colors[ii])
     ax.plot(R[ii,:,2], Z[ii,:,2], linewidth=2,linestyle=linestyles[ii],color=colors[ii])
