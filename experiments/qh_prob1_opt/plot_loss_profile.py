@@ -16,7 +16,7 @@ matplotlib.rcParams.update({'font.size': 22})
 colors = ['#377eb8', '#ff7f00', '#4daf4a',
           '#f781bf', '#a65628', '#984ea3',
           '#999999', '#e41a1c', '#dede00']
-markers = ['s','o','^','x']
+markers = ['s','o','^','x','d']
 linestyles=['solid'
             ,'solid'
             ,'dotted'
@@ -43,18 +43,12 @@ for key in list(indata.keys()):
     exec(s)
 n_configs = len(filelist)
 
-# skip LP-QH and IPP-QA
-#skip = [8]
+# skip any configs?
 skip = []
-
 
 # compute the loss profiles
 times = np.logspace(-5,np.log10(tmax),1000)
-lp_vol = np.array([np.mean(c_times_vol< t,axis=1) for t in times])
 lp_surf = np.array([np.mean(c_times_surface< t,axis=1) for t in times])
-
-# get the configuration names
-config_names = [ff[1] for ff in filelist]
 
 # make a figure
 fig, ax_both = plt.subplots(figsize=(14,6),ncols=2)
@@ -71,11 +65,10 @@ colors = cmap(np.linspace(0,1,n_configs))
 for ii in range(n_configs):
     if ii in skip:
         continue
-    label = config_names[ii]
-    label = label.replace(" ", "-")
-    ax1.plot(times,lp_vol[:,ii],linewidth=3,linestyle=linestyles[ii],color=colors[ii],label=label)
-    ax2.plot(times,lp_surf[:,ii],linewidth=3,linestyle=linestyles[ii],color=colors[ii])
-    print(label,'volume losses',lp_vol[-1,ii],'surface losses',lp_surf[-1,ii])
+    label = aspect_list[ii]
+    ax1.plot(times,lp_surf[:,ii],linewidth=3,linestyle=linestyles[ii],color=colors[ii])
+    ax2.scatter(aspect_list[ii],lp_surf[-1,ii], color='k',s=50)
+    print(label,'surface losses',lp_surf[-1,ii])
 
 # legend
 #ax1.legend(ncols=3,fontsize=16,frameon=False)
@@ -89,18 +82,22 @@ for ax in ax_both:
     # darken the border
     ax.patch.set_edgecolor('black')  
     ax.patch.set_linewidth('2')  
-    # log space 
-    ax.set_yscale('log')
-    ax.set_xscale('log')
-    # limits
-    ax.set_ylim([1e-3,0.3])
-    ax.set_xlim([1e-5,1e-2])
-    # ticks
-    ax.set_xticks([1e-5,1e-4,1e-3,1e-2])
-    ax.set_yticks([1e-3,1e-2,1e-1])
-    # labels
-    ax.set_xlabel('Time [sec]')
+
+# log space 
+ax1.set_yscale('log')
+ax1.set_xscale('log')
+ax2.set_yscale('log')
+# limits
+ax1.set_ylim([1e-4,0.3])
+ax1.set_xlim([1e-5,1e-2])
+# ticks
+ax1.set_xticks([1e-5,1e-4,1e-3,1e-2,1e-1])
+ax1.set_yticks([1e-3,1e-2,1e-1])
+# labels
+ax1.set_xlabel('Time [sec]')
 ax1.set_ylabel("Fraction of alpha particles lost",fontsize=18)
+ax2.set_xlabel('Aspect Ratio')
+ax2.set_ylabel("Fraction of alpha particles lost",fontsize=18)
 
 plt.tight_layout()
 
