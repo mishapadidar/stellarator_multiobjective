@@ -11,7 +11,7 @@ from simsopt.field import Current, coils_via_symmetries, BiotSavart
 from simsopt.objectives import SquaredFlux, QuadraticPenalty
 
 """
-Run with 
+Run with simsopt 0.12.2
   mpiexec -n 1 python3 biobjective.py ${constraint_name} ${constraint_target} ${start_type} ${ncoils}
 i.e.
   mpiexec -n 1 python3 biobjective.py length 5.0 warm 4
