@@ -55,5 +55,5 @@ ax.patch.set_linewidth(2)
 
 plt.tight_layout()
 
-filename = "qfm_plot.pdf"
+filename = "./output/qfm_plot.pdf"
 plt.savefig(filename, format="pdf", bbox_inches="tight")

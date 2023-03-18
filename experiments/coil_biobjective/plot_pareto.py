@@ -110,7 +110,7 @@ ax.patch.set_linewidth(2)
 plt.tight_layout()
 
 
-filename = "biobjective_plot.pdf"
+filename = "./output/biobjective_plot.pdf"
 plt.savefig(filename, format="pdf", bbox_inches="tight")
 
 # copy the files of pareto points to another directory

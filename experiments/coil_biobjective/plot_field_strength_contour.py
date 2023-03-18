@@ -64,7 +64,7 @@ plt.tight_layout()
 #filename = infile.split("/")[-1] # remove any directories
 #filename = filename[:-7] # remove the .pickle
 #filename = filename + ".pdf"
-filename = "field_strength_contours.pdf"
+filename = "./output/biobjective_coils_field_strength_contours.pdf"
 print(filename)
 plt.savefig(filename, format="pdf", bbox_inches="tight")
 #plt.show()
