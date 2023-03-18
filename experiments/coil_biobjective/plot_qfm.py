@@ -37,7 +37,15 @@ lengths = Fopt_list[:,1]
 
 fig,ax = plt.subplots(figsize=(8,8))
 
-ax.scatter(lengths/ncoils/surf_effective_circumference,qsrr_list,color='k',s=50,zorder=100)
+ax.scatter(lengths/ncoils/surf_effective_circumference,qsrr_list,color='k',s=50,zorder=99)
+
+# put markers at the paraview points
+plt.scatter(lengths[paraview_indexes[0]]/ncoils/surf_effective_circumference,qsrr_list[paraview_indexes[0]],color=colors[0],marker='*',s=250,zorder=100)
+plt.scatter(lengths[paraview_indexes[1]]/ncoils/surf_effective_circumference,qsrr_list[paraview_indexes[1]],color=colors[1],marker='s',s=200,zorder=100)
+
+# show the LP-QA quasi-symmetry level
+plt.text(3.6,4e-6,"LP-QA quasi-symmetry level",fontsize=13)
+ax.axhline(surface_qsrr,color='k',linestyle='--',linewidth=2)
 
 # labels
 ax.set_xlabel("Average Coil Length / Surface Minor Circumference")
