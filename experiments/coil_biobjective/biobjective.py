@@ -28,7 +28,7 @@ warm_mode = False
 if warm_mode:
     # no cmd line args
     constraint_name = 'length'
-    constraint_target_list = np.linspace(8.0,25.0,34)[::-1]
+    constraint_target_list = np.linspace(19.0,24.0,10)[::-1]
     start_type = "warm"
     ncoils = 4
 else:
@@ -76,14 +76,17 @@ R1 = R0/2
 print('surf minor radius',surf.minor_radius())
 
 # plot the surface
-quadpoints_phi = np.linspace(0,1,128)
-quadpoints_theta = np.linspace(0,1,128)
-surf_plot = SurfaceRZFourier.from_vmec_input(vmec_input, quadpoints_phi=quadpoints_phi, quadpoints_theta=quadpoints_theta)
-surf_plot.to_vtk("./output/surf_full")
-quadpoints_phi = np.linspace(0,1/surf.nfp/2,128)
-quadpoints_theta = np.linspace(0,1,128)
-surf_plot = SurfaceRZFourier.from_vmec_input(vmec_input, quadpoints_phi=quadpoints_phi, quadpoints_theta=quadpoints_theta)
-surf_plot.to_vtk("./output/surf_half_period")
+if not os.path.exists("./output"):
+    os.makedirs("./output")
+if not os.path.exists("./output/surf_full"):
+    quadpoints_phi = np.linspace(0,1,128)
+    quadpoints_theta = np.linspace(0,1,128)
+    surf_plot = SurfaceRZFourier.from_vmec_input(vmec_input, quadpoints_phi=quadpoints_phi, quadpoints_theta=quadpoints_theta)
+    surf_plot.to_vtk("./output/surf_full")
+    quadpoints_phi = np.linspace(0,1/surf.nfp/2,128)
+    quadpoints_theta = np.linspace(0,1,128)
+    surf_plot = SurfaceRZFourier.from_vmec_input(vmec_input, quadpoints_phi=quadpoints_phi, quadpoints_theta=quadpoints_theta)
+    surf_plot.to_vtk("./output/surf_half_period")
 
 # Create the initial coils:
 base_curves = create_equally_spaced_curves(ncoils, surf.nfp, stellsym=True, R0=R0, R1=R1, order=order)
