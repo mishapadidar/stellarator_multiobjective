@@ -46,8 +46,8 @@ filelist = glob.glob("./output/pareto_data/*_ncoils_4_*.pickle")
 n_configs = len(filelist)
 
 # files we plotted in paraview
-paraview_files = ["./output/pareto_data/biobjective_eps_con_length_14.0_cold_ncoils_4_45d6612c-1c84-4c56-b5cc-69aba4906332.pickle",
-    "./output/pareto_data/biobjective_eps_con_length_19.333333333333332_warm_ncoils_4_139bd8e6-79ad-4c3b-84b2-216ba1449ee8.pickle"]
+paraview_files = ["./output/pareto_data/biobjective_eps_con_length_15.5_cold_ncoils_4_785bbf81-f8fb-488c-b0ef-12a2bbec651d.pickle",
+    "./output/pareto_data/biobjective_eps_con_length_19.555555555555557_warm_ncoils_4_0f97f07b-8d84-428f-925a-43bebaa5e441.pickle"]
 paraview_indexes = [ii for ii,xx in enumerate(filelist) if xx in paraview_files]
 print(paraview_indexes)
 
