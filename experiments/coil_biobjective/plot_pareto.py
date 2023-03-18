@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
 import matplotlib
-import seaborn as sns
 import glob
 import os
 import shutil
