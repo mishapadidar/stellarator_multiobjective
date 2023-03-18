@@ -19,6 +19,10 @@ from simsopt.geo import QfmResidual, Volume
 """
 Run with simsopt 0.12.2.
   mpiexec -n 1 python3 qfm_surface.py
+
+Build QFM surfaces from the coil B-fields, solve the ideal MHD
+equilibrium using the QFM surface as the boundary shape, 
+compute the quasi-symmetry metric.
 """
 
 # Initialize the boundary magnetic surface:
@@ -60,6 +64,15 @@ qsrr_list = np.zeros(n_configs)
 Fopt_list = np.zeros((n_configs,2))
 ncoils_list = np.zeros(n_configs)
 
+# measure quasi-symmetry of the surface
+mpi = MpiPartition()
+vmec = Vmec(vmec_input, mpi=mpi,keep_all_files=False,verbose=False)
+vmec.boundary = surf
+qsrr = QuasisymmetryRatioResidual(vmec,
+                                    np.arange(0, 1.01, 0.1),  # Radii to target
+                                    helicity_m=1, helicity_n=0)  # (M, N) you want in |B|
+print(f"Baseline Quasi-symmetry",qsrr.total())
+outdata['surface_qsrr'] = qsrr.total()
 
 for ifile, infile in enumerate(filelist):
     print("")
