@@ -41,12 +41,19 @@ helicity_n = 0
 filelist = glob.glob("./output/pareto_data/*_ncoils_4_*.pickle")
 n_configs = len(filelist)
 
+# files we plotted in paraview
+paraview_files = ["./output/pareto_data/biobjective_eps_con_length_14.0_cold_ncoils_4_45d6612c-1c84-4c56-b5cc-69aba4906332.pickle",
+    "./output/pareto_data/biobjective_eps_con_length_19.333333333333332_warm_ncoils_4_139bd8e6-79ad-4c3b-84b2-216ba1449ee8.pickle"]
+paraview_indexes = [ii for ii,xx in enumerate(filelist) if xx in paraview_files]
+print(paraview_indexes)
+
 # storage
 outfilename = "./output/qfm_data.pickle"
 outdata = {}
 outdata['filelist'] = filelist
 outdata['helicity_m'] = helicity_m
 outdata['helicity_n'] = helicity_n
+outdata['paraview_indexes'] = paraview_indexes
 
 # more storage
 qsrr_list = np.zeros(n_configs)
