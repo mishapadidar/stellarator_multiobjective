@@ -21,8 +21,8 @@ colors = ['#377eb8', '#ff7f00', '#4daf4a',
 markers = ['o','s','^']
 
 # paraview files
-paraview_files = ["./output/biobjective/length/biobjective_eps_con_length_14.0_cold_ncoils_4_45d6612c-1c84-4c56-b5cc-69aba4906332.pickle",
-    "./output/biobjective/length/biobjective_eps_con_length_19.333333333333332_warm_ncoils_4_139bd8e6-79ad-4c3b-84b2-216ba1449ee8.pickle"]
+paraview_files = ["./output/biobjective/length/biobjective_eps_con_length_15.5_cold_ncoils_4_785bbf81-f8fb-488c-b0ef-12a2bbec651d.pickle",
+    "./output/biobjective/length/biobjective_eps_con_length_19.555555555555557_warm_ncoils_4_0f97f07b-8d84-428f-925a-43bebaa5e441.pickle"]
 
 
 # find the files
@@ -86,7 +86,7 @@ for ii,nn in enumerate(ncoils_unique):
 idx_paraview_files= np.array([ii for ii,xx in enumerate(filelist) if xx in paraview_files])
 markers= ['*','s','d']
 for ii,jj in enumerate(idx_paraview_files):
-    plt.scatter(Fopt_list[jj,1]/nn/surf_effective_circumference,Fopt_list[jj,0],color=colors[ii],marker=markers[ii],s=200,zorder=100)
+    plt.scatter(Fopt_list[jj,1]/nn/surf_effective_circumference,Fopt_list[jj,0],color=colors[ii],marker=markers[ii],s=220,zorder=100)
 
 
 plt.ylabel('Quadratic Flux')
