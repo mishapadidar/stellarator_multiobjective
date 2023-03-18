@@ -79,11 +79,11 @@ print('surf minor radius',surf.minor_radius())
 quadpoints_phi = np.linspace(0,1,128)
 quadpoints_theta = np.linspace(0,1,128)
 surf_plot = SurfaceRZFourier.from_vmec_input(vmec_input, quadpoints_phi=quadpoints_phi, quadpoints_theta=quadpoints_theta)
-surf_plot.to_vtk("surf_full")
+surf_plot.to_vtk("./output/surf_full")
 quadpoints_phi = np.linspace(0,1/surf.nfp/2,128)
 quadpoints_theta = np.linspace(0,1,128)
 surf_plot = SurfaceRZFourier.from_vmec_input(vmec_input, quadpoints_phi=quadpoints_phi, quadpoints_theta=quadpoints_theta)
-surf_plot.to_vtk("surf_half_period")
+surf_plot.to_vtk("./output/surf_half_period")
 
 # Create the initial coils:
 base_curves = create_equally_spaced_curves(ncoils, surf.nfp, stellsym=True, R0=R0, R1=R1, order=order)
