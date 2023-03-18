@@ -3,7 +3,7 @@
 
 constraint_name='length' # length
 constraint_targets=($(seq 6 0.5 30))  # start, step, last
-ncoils=3 # 3 or 4
+ncoils=4 # 3 or 4
 
 for idx in ${!constraint_targets[@]}
 do
