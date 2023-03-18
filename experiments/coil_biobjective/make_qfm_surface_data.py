@@ -107,7 +107,7 @@ for ifile, infile in enumerate(filelist):
     qfmres = QfmResidual(surf, bs) # residual
     qfm_surface = QfmSurface(bs, surf, vol, vol_target)
     #res = qfm_surface.minimize_qfm_exact_constraints_SLSQP(tol=1e-12, maxiter=1000)
-    res = qfm_surface.minimize_qfm_penalty_constraints_LBFGS(tol=1e-12, maxiter=1500,constraint_weight=1e4)
+    res = qfm_surface.minimize_qfm_penalty_constraints_LBFGS(tol=1e-12, maxiter=2000,constraint_weight=1e4)
     print(res)
     print(f"||vol constraint||={0.5*(surf.volume()-vol_target)**2:.8e}, ||residual||={np.linalg.norm(qfmres.J()):.8e}")
 
