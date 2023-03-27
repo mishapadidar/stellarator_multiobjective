@@ -21,7 +21,7 @@ colors = ['#377eb8', '#ff7f00', '#4daf4a',
           '#999999', '#e41a1c', '#dede00']
 markers = ['o','s','^']
 
-filelist = "./output/qfm_data/*pickle"
+filelist = glob.glob("./output/qfm_data/*pickle")
 n_configs = len(filelist)
 
 # storage
@@ -31,6 +31,7 @@ qsrr_list = np.zeros(n_configs)
 # load data
 for ifile, infile in enumerate(filelist):
     # load the relevant keys
+    indata = pickle.load(open(infile,"rb"))
     for key in list(indata.keys()):
         s  = f"{key} = indata['{key}']"
         exec(s)
@@ -41,8 +42,8 @@ surf_minor_radius = 0.16831206437162438
 surf_effective_circumference = 2*np.pi*surf_minor_radius
 
 # files we plotted in paraview
-paraview_files = ["./output/pareto_data/biobjective_eps_con_length_15.5_cold_ncoils_4_785bbf81-f8fb-488c-b0ef-12a2bbec651d.pickle",
-    "./output/pareto_data/biobjective_eps_con_length_19.555555555555557_warm_ncoils_4_0f97f07b-8d84-428f-925a-43bebaa5e441.pickle"]
+paraview_files = ["./output/qfm_data/biobjective_eps_con_length_15.5_cold_ncoils_4_785bbf81-f8fb-488c-b0ef-12a2bbec651d_qfm_data.pickle",
+    "./output/qfm_data/biobjective_eps_con_length_19.555555555555557_warm_ncoils_4_0f97f07b-8d84-428f-925a-43bebaa5e441_qfm_data.pickle"]
 paraview_indexes = [ii for ii,ff in enumerate(filelist) if ff in paraview_files]
 
 # coil lengths
