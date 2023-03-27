@@ -139,7 +139,8 @@ except:
     quit()
 
 # make a vtk file of the surface
-surfname = infile[:-7] # remove the ".pickle"
+surfname = infile.split("/")[-1] # remove any directories
+surfname = surfname[:-7] # remove the ".pickle"
 surfname += "_qfm_surface"
 surf.to_vtk(surfname)
 
