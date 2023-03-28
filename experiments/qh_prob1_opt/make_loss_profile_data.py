@@ -14,6 +14,8 @@ rank = comm.Get_rank()
 """
 Make data for the loss profile plots.
 
+Run with simsopt 0.7.4
+
 usage:
   mpiexec -n 1 python3 make_loss_profile_data.py
 
@@ -23,6 +25,9 @@ Scale the device so that the major radius is
 where aspect is the current aspect ratio and target_minor is the desired
 minor radius.
 """
+# surface
+s_label = 0.5
+
 # scaling params
 target_minor_radius = 1.7
 target_B00_on_axis = 5.7
@@ -46,7 +51,7 @@ c_times_surface = -np.inf*np.ones((n_configs,n_particles))
 aspect_list = np.zeros(n_configs)
 
 # for saving data
-outfile = "./loss_profile_data.pickle"
+outfile = f"./loss_profile_data_s_{s_label}.pickle"
 outdata = {}
 outdata['filelist'] = filelist
 outdata['target_minor_radius'] =target_minor_radius
@@ -59,6 +64,7 @@ outdata['interpolant_degree'] = interpolant_degree
 outdata['interpolant_level'] =  interpolant_level
 outdata['bri_mpol'] = bri_mpol
 outdata['bri_ntor'] = bri_ntor
+outdata['s_label'] = s_label
 
 for ii,infile in enumerate(filelist):
 
@@ -147,7 +153,7 @@ for ii,infile in enumerate(filelist):
     print('volavgB',tracer.vmec.wout.volavgB)
     print('toroidal flux',tracer.vmec.indata.phiedge)
   
-  stz_inits,vpar_inits = tracer.sample_surface(n_particles,0.25)
+  stz_inits,vpar_inits = tracer.sample_surface(n_particles,s_label)
   c_times = tracer.compute_confinement_times(x0,stz_inits,vpar_inits,tmax)
   if rank == 0:
     lf = np.mean(c_times < tmax)
