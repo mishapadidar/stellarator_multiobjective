@@ -13,7 +13,7 @@ from is_pareto_efficient import is_pareto_efficient
 
 plt.rc('font', family='serif')
 plt.rc('text.latex', preamble=r'\usepackage{amsmath,bm}')
-matplotlib.rcParams.update({'font.size': 18})
+matplotlib.rcParams.update({'font.size': 20})
 
 # colorblind colors
 colors = ['#377eb8', '#ff7f00', '#4daf4a',
@@ -49,7 +49,7 @@ paraview_indexes = [ii for ii,ff in enumerate(filelist) if ff in paraview_files]
 # coil lengths
 lengths = Fopt_list[:,1]
 
-fig,ax = plt.subplots(figsize=(8,8))
+fig,ax = plt.subplots(figsize=(9,9))
 
 ax.scatter(lengths/ncoils/surf_effective_circumference,qsrr_list,color='k',s=50,zorder=99)
 
@@ -58,7 +58,7 @@ plt.scatter(lengths[paraview_indexes[0]]/ncoils/surf_effective_circumference,qsr
 plt.scatter(lengths[paraview_indexes[1]]/ncoils/surf_effective_circumference,qsrr_list[paraview_indexes[1]],color=colors[1],marker='s',s=200,zorder=100)
 
 # show the LP-QA quasi-symmetry level
-plt.text(3.6,4e-6,"LP-QA quasi-symmetry level",fontsize=13)
+plt.text(3.6,4e-6,"LP-QA quasi-symmetry level",fontsize=20)
 ax.axhline(surface_qsrr,color='k',linestyle='--',linewidth=2)
 
 # labels
