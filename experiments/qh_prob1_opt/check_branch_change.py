@@ -57,8 +57,6 @@ for aspect_target in aspect_list:
                                 helicity_m=1, helicity_n=-1)  # (M, N) you want in |B|
     qs0 = qsrr.residuals()
 
-    if mpi.proc0_world:
-        print('computing jac')
 
     # compute a gradient with MPI
     with MPIFiniteDifference(qsrr.residuals, mpi, abs_step=1e-7,
@@ -66,19 +64,14 @@ for aspect_target in aspect_list:
         if mpi.proc0_world:
             # jacobian J or residauls r
             qsrr_jac = fd.jac()
-            print(qsrr_jac.shape)
-            print('computed jac')
             # grad = J.T @ r0
             qsrr_grad = qsrr_jac.T @ qs0
-            print(qsrr_grad.shape)
             # H = J.T @ J
             H = qsrr_jac.T @ qsrr_jac
             Q = np.linalg.cholesky(H)
-            print('computed cholesky')
             # H @ r = gradf - H @ x0
             #r = np.linalg.solve(Q.T, np.linalg.solve(Q,qsrr_grad)) - x0
             qsrr_standard_grad = np.linalg.solve(Q,qsrr_grad)
-            print('computed standard grad')
     with MPIFiniteDifference(vmec.aspect, mpi, abs_step=1e-7,
                              rel_step=1e-5) as fd:
         if mpi.proc0_world:
@@ -90,6 +83,8 @@ for aspect_target in aspect_list:
         print('norm qs transformed grad', np.linalg.norm(qsrr_standard_grad))
         print('norm aspect grad', np.linalg.norm(aspect_grad))
         print('dot product', aspect_grad @ qsrr_grad)
+        lam = -aspect_grad @ qsrr_grad / (aspect_grad @ aspect_grad)
+        print('lagrange multiplier',lam)
         rho = aspect_grad @ qsrr_grad/ np.linalg.norm(qsrr_grad)/np.linalg.norm(aspect_grad)
         print('correlation',rho)
         print('angle',np.arccos(rho))
