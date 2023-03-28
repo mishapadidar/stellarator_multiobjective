@@ -11,7 +11,8 @@ import sys
 
 
 """
-Check if we have a branch change
+Check if we have a branch change.
+Run with simsopt 0.12.2
 
 usage:
   mpiexec -n 96 python3 check_branch_change.py
@@ -54,22 +55,41 @@ for aspect_target in aspect_list:
     qsrr = QuasisymmetryRatioResidual(vmec,
                                 np.linspace(0,1,11),  # Radii to target
                                 helicity_m=1, helicity_n=-1)  # (M, N) you want in |B|
+    qs0 = qsrr.residuals()
+
+    if mpi.proc0_world:
+        print('computing jac')
 
     # compute a gradient with MPI
-    with MPIFiniteDifference(qsrr.total, mpi, abs_step=1e-7,
+    with MPIFiniteDifference(qsrr.residuals, mpi, abs_step=1e-7,
                              rel_step=1e-5) as fd:
         if mpi.proc0_world:
-            qsrr_jac = fd.jac().flatten()
+            # jacobian J or residauls r
+            qsrr_jac = fd.jac()
+            print(qsrr_jac.shape)
+            print('computed jac')
+            # grad = J.T @ r0
+            qsrr_grad = qsrr_jac.T @ qs0
+            print(qsrr_grad.shape)
+            # H = J.T @ J
+            H = qsrr_jac.T @ qsrr_jac
+            Q = np.linalg.cholesky(H)
+            print('computed cholesky')
+            # H @ r = gradf - H @ x0
+            #r = np.linalg.solve(Q.T, np.linalg.solve(Q,qsrr_grad)) - x0
+            qsrr_standard_grad = np.linalg.solve(Q,qsrr_grad)
+            print('computed standard grad')
     with MPIFiniteDifference(vmec.aspect, mpi, abs_step=1e-7,
                              rel_step=1e-5) as fd:
         if mpi.proc0_world:
-            aspect_jac = fd.jac().flatten()
+            aspect_grad = fd.jac().flatten()
 
     if mpi.proc0_world:
-        print(qsrr_jac.shape,aspect_jac.shape)
-        print('norm qs grad', np.linalg.norm(qsrr_jac))
-        print('norm aspect grad', np.linalg.norm(aspect_jac))
-        print('dot product', aspect_jac @ qsrr_jac)
-        rho = aspect_jac @ qsrr_jac/ np.linalg.norm(qsrr_jac)/np.linalg.norm(aspect_jac)
+        print(qsrr_jac.shape,aspect_grad.shape)
+        print('norm qs grad', np.linalg.norm(qsrr_grad))
+        print('norm qs transformed grad', np.linalg.norm(qsrr_standard_grad))
+        print('norm aspect grad', np.linalg.norm(aspect_grad))
+        print('dot product', aspect_grad @ qsrr_grad)
+        rho = aspect_grad @ qsrr_grad/ np.linalg.norm(qsrr_grad)/np.linalg.norm(aspect_grad)
         print('correlation',rho)
         print('angle',np.arccos(rho))
