@@ -31,8 +31,8 @@ aspect_list = indata['aspect']
 qs_list = indata['qs_mse']
 # truncate plot to [3,10]
 idx_trunc = np.logical_and(aspect_list>=3,aspect_list<=10)
-aspect_list = aspect_list[idx_trunc]
-qs_list = qs_list[idx_trunc]
+aspect_list = np.array(aspect_list[idx_trunc])
+qs_list = np.array(qs_list[idx_trunc])
 # stack it
 FX = np.vstack((aspect_list,qs_list)).T
 # make pareto set
@@ -54,7 +54,25 @@ example_points[:,1] *= 44352
 # plot
 fig,ax = plt.subplots(figsize=(8,8))
 if plot_all_points:
-  plt.scatter(aspect_list,qs_list,alpha=0.5)
+  plt.scatter(aspect_list,44352*qs_list,alpha=0.5)
+# plot the points in the gap
+lb = 6.12
+ub = 8.5
+idx_filter = (aspect_list > lb) & (aspect_list <ub)
+aspect_list = aspect_list[idx_filter]
+qs_list = 44352*qs_list[idx_filter]
+n_bins = 15
+bins = np.linspace(np.min(aspect_list),np.max(aspect_list),n_bins)
+aspect_min = np.zeros(len(bins)-1)
+qs_min = np.zeros(len(bins)-1)
+for ii,lb in enumerate(bins[:-1]):
+    ub = bins[ii+1]
+    idx_filter = (aspect_list >=lb) & (aspect_list <=ub)
+    idx_min = np.argmin(qs_list[idx_filter])
+    qs_min[ii] = qs_list[idx_filter][idx_min]
+    aspect_min[ii] = aspect_list[idx_filter][idx_min]
+plt.scatter(aspect_min,qs_min,color='grey',alpha=1.0)
+# plot the pareto front
 #plt.scatter(aspect_pareto,qs_pareto,s=30,color='k',label='pareto front',rasterized=True)
 plt.scatter(aspect_pareto,qs_pareto,s=30,color='k',rasterized=True,zorder=100)
 plt.scatter(example_points[0,0],example_points[0,1],s=200,color=colors[0],marker='*',zorder=100)
