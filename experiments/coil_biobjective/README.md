@@ -17,4 +17,8 @@ Generate data for contour plots of the coil field strength on the s=1 surface us
 `make_field_strength_contour_data.py`. Plot it with `plot_field_strength_contour.py`.
 
 Build QFM surfaces and estimate the quasi-symmetry level of the coil field using
-`make_qfm_surface_data.py`. plot the data with `plot_qfm.py`
+`make_qfm_surface_data.py`. plot the data with `plot_qfm.py`. The qfm surface script
+`make_qfm_surface_data.py` should be executed with the batch submission script
+`batch_submit_qfm.py`.
+
+`plot_coils.py` will generate a vtk file for the coil plots in Paraview.

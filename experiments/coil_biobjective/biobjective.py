@@ -6,7 +6,8 @@ import uuid
 from scipy.optimize import minimize
 import sys
 from simsopt.geo import SurfaceRZFourier, create_equally_spaced_curves, \
-    CurveLength, curves_to_vtk, MeanSquaredCurvature, CurveSurfaceDistance
+    CurveLength, curves_to_vtk, MeanSquaredCurvature, CurveSurfaceDistance, \
+    ArclengthVariation
 from simsopt.field import Current, coils_via_symmetries, BiotSavart
 from simsopt.objectives import SquaredFlux, QuadraticPenalty
 
@@ -28,7 +29,7 @@ warm_mode = False
 if warm_mode:
     # no cmd line args
     constraint_name = 'length'
-    constraint_target_list = np.linspace(19.0,24.0,10)[::-1]
+    constraint_target_list = np.linspace(12.0,30.0,36)[::-1]
     start_type = "warm"
     ncoils = 4
 else:
@@ -46,16 +47,19 @@ penalty_gamma = 10
 initial_penalty_weight = 0.1
 
 # solver options
-maxiter = 2000
-gtol = 1e-6
+maxiter = 30000
+gtol = 1e-14
 options = {'gtol':gtol, 'maxiter': maxiter, 'maxcor': 300} #'iprint': 5}
 
 # coil-surface distance params
 coil_surf_dist_penalty_weight = 1e6
 coil_surf_dist_rhs = 0.01
 
+# arc length variation params
+arc_length_variation_penalty_weight = 1e-6
+
 # coil params
-order = 5 # num fourier modes per coils
+order = 12 # num fourier modes per coils
 current = 1e5
 # surface definition
 vmec_input = '../../vmec_input_files/input.LandremanPaul2021_QA'
@@ -106,6 +110,9 @@ Jlength = [CurveLength(c) for c in base_curves]
 Jlength_total = sum(Jlength)
 Jmsc = [MeanSquaredCurvature(c) for c in base_curves]
 Jmsc_total = sum(Jmsc)
+# arc length variation
+Jalv = [ArclengthVariation(c) for c in base_curves]
+Jalv_total = sum(Jalv)
 # coil to surface distance
 Jcoil_surf_dist = CurveSurfaceDistance(base_curves,surf,coil_surf_dist_rhs)
 
@@ -125,6 +132,7 @@ for li, constraint_target in enumerate(constraint_target_list):
     print("initial constraint:",constraint.J())
     print("initial constraint violation:",max(constraint.J()-constraint_target,0.0))
     print("initial cs-dist:",Jcoil_surf_dist.shortest_distance())
+    print("initial arc length variation:",Jalv_total.J())
 
     # initial run params
     penalty_weight = initial_penalty_weight
@@ -135,7 +143,8 @@ for li, constraint_target in enumerate(constraint_target_list):
         # penalty objective
         penalty_weight = penalty_weight * penalty_gamma
         JF = Jflux + penalty_weight * QuadraticPenalty(constraint,constraint_target, f='max')\
-            + coil_surf_dist_penalty_weight*Jcoil_surf_dist
+            + coil_surf_dist_penalty_weight*Jcoil_surf_dist\
+            + arc_length_variation_penalty_weight*Jalv_total
         def fun(dofs):
             JF.x = dofs
             return JF.J(), JF.dJ()
@@ -157,11 +166,13 @@ for li, constraint_target in enumerate(constraint_target_list):
         print(f"P{ii} constraint:",constraint.J())
         print(f"P{ii} constraint violation:",max(constraint.J()-constraint_target,0.0))
         print(f"P{ii} cs-dist:",Jcoil_surf_dist.shortest_distance())
+        print(f"P{ii} arc length variation:",Jalv_total.J())
     
     print("final Bnormal:",Jflux.J())
     print("final constraint:",constraint.J())
     print("final constraint violation:",max(constraint.J()-constraint_target,0.0))
     print("final cs-dist:",Jcoil_surf_dist.shortest_distance())
+    print("final arc length variation:",Jalv_total.J())
 
     # Save the optimized coil shapes and currents so they can be loaded into other scripts for analysis:
     outputdir = f"./output/biobjective/{constraint_name}"
@@ -183,8 +194,10 @@ for li, constraint_target in enumerate(constraint_target_list):
     outdata['objective_names'] = objective_names
     outdata['constraint_name'] = constraint_name
     outdata['coil_surf_dist_penalty_weight'] = coil_surf_dist_penalty_weight
+    outdata['arc_length_variation_penalty_weight'] = arc_length_variation_penalty_weight
     outdata['coil_surf_dist_rhs'] = coil_surf_dist_rhs
     outdata['min_coil_surf_dist'] = Jcoil_surf_dist.shortest_distance()
+    outdata['total_arc_length_variation'] = Jalv_total.J()
     pickle.dump(outdata, open(outfilename,"wb"))
 
     # write vtk files
