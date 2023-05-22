@@ -21,8 +21,8 @@ colors = ['#377eb8', '#ff7f00', '#4daf4a',
 markers = ['o','s','^']
 
 # paraview files
-paraview_files = ["./output/biobjective/length/biobjective_eps_con_length_15.5_cold_ncoils_4_785bbf81-f8fb-488c-b0ef-12a2bbec651d.pickle",
-    "./output/biobjective/length/biobjective_eps_con_length_19.555555555555557_warm_ncoils_4_0f97f07b-8d84-428f-925a-43bebaa5e441.pickle"]
+paraview_files = ["./output/biobjective/length/biobjective_eps_con_length_17.625_warm_ncoils_4_55f51166-9fbd-4fc9-b1ec-b463f92e629e.pickle",
+"./output/biobjective/length/biobjective_eps_con_length_24.189999999999998_warm_ncoils_4_b1775dc0-ea0a-4947-b775-a08d59eacf95.pickle"]
 
 
 # find the files
@@ -84,6 +84,7 @@ for ii,nn in enumerate(ncoils_unique):
 
 # plot the paraview coils
 idx_paraview_files= np.array([ii for ii,xx in enumerate(filelist) if xx in paraview_files])
+print(idx_paraview_files)
 markers= ['*','s','d']
 for ii,jj in enumerate(idx_paraview_files):
     plt.scatter(Fopt_list[jj,1]/nn/surf_effective_circumference,Fopt_list[jj,0],color=colors[ii],marker=markers[ii],s=220,zorder=100)
@@ -95,7 +96,8 @@ plt.xlabel("Average Coil Length / Surface Minor Circumference")
 
 # add y-ticks to show the grid
 plt.yscale('log')
-plt.yticks([3.162e-6,1e-6,3.162e-7,1e-7])
+#plt.yticks([3.162e-6,1e-6,3.162e-7,1e-7])
+plt.xticks([3,4,5,6,7])
 # plt.xlim(20,30)
 
 # grid

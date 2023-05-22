@@ -21,7 +21,9 @@ linestyles=['-','--','-.']
 
 # matplotlib.use('TkAgg')
 
-filelist = ["./output/biobjective_eps_con_length_15.5_cold_ncoils_4_785bbf81-f8fb-488c-b0ef-12a2bbec651d_field_strength.pickle", "./output/biobjective_eps_con_length_19.555555555555557_warm_ncoils_4_0f97f07b-8d84-428f-925a-43bebaa5e441_field_strength.pickle"]
+#filelist = ["./output/biobjective_eps_con_length_15.5_cold_ncoils_4_785bbf81-f8fb-488c-b0ef-12a2bbec651d_field_strength.pickle", "./output/biobjective_eps_con_length_19.555555555555557_warm_ncoils_4_0f97f07b-8d84-428f-925a-43bebaa5e441_field_strength.pickle"]
+filelist = glob.glob("./output/*_field_strength.pickle")
+print(filelist)
 
 
 fig,ax = plt.subplots(figsize=(8,4),ncols=2)

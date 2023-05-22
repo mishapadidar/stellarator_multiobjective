@@ -42,8 +42,8 @@ surf_minor_radius = 0.16831206437162438
 surf_effective_circumference = 2*np.pi*surf_minor_radius
 
 # files we plotted in paraview
-paraview_files = ["./output/qfm_data/biobjective_eps_con_length_15.5_cold_ncoils_4_785bbf81-f8fb-488c-b0ef-12a2bbec651d_qfm_data.pickle",
-    "./output/qfm_data/biobjective_eps_con_length_19.555555555555557_warm_ncoils_4_0f97f07b-8d84-428f-925a-43bebaa5e441_qfm_data.pickle"]
+paraview_files = ["./output/qfm_data/biobjective_eps_con_length_17.625_warm_ncoils_4_55f51166-9fbd-4fc9-b1ec-b463f92e629e_qfm_data.pickle",
+"./output/qfm_data/biobjective_eps_con_length_24.189999999999998_warm_ncoils_4_b1775dc0-ea0a-4947-b775-a08d59eacf95_qfm_data.pickle"]
 paraview_indexes = [ii for ii,ff in enumerate(filelist) if ff in paraview_files]
 
 # coil lengths
@@ -51,6 +51,7 @@ lengths = Fopt_list[:,1]
 
 fig,ax = plt.subplots(figsize=(9,9))
 
+ncoils = 4
 ax.scatter(lengths/ncoils/surf_effective_circumference,qsrr_list,color='k',s=50,zorder=99)
 
 # put markers at the paraview points
