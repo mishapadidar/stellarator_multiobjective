@@ -28,8 +28,8 @@ usage:
 """
 
 # paraview files
-infile_list = ["./output/biobjective/length/biobjective_eps_con_length_15.5_cold_ncoils_4_785bbf81-f8fb-488c-b0ef-12a2bbec651d.pickle",
-    "./output/biobjective/length/biobjective_eps_con_length_19.555555555555557_warm_ncoils_4_0f97f07b-8d84-428f-925a-43bebaa5e441.pickle"]
+infile_list = ["./output/biobjective/length/biobjective_eps_con_length_17.625_warm_ncoils_4_55f51166-9fbd-4fc9-b1ec-b463f92e629e.pickle",
+"./output/biobjective/length/biobjective_eps_con_length_24.189999999999998_warm_ncoils_4_b1775dc0-ea0a-4947-b775-a08d59eacf95.pickle"]
 
 
 # interpolation params

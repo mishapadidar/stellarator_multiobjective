@@ -30,6 +30,8 @@ if warm_mode:
     # no cmd line args
     constraint_name = 'length'
     constraint_target_list = np.linspace(12.0,30.0,36)[::-1]
+    #constraint_target_list = np.linspace(12.0,16.5,8)[::-1]
+    #constraint_target_list = np.linspace(16.11,25.2,19)
     start_type = "warm"
     ncoils = 4
 else:
@@ -56,10 +58,11 @@ coil_surf_dist_penalty_weight = 1e6
 coil_surf_dist_rhs = 0.01
 
 # arc length variation params
-arc_length_variation_penalty_weight = 1e-6
+arc_length_variation_penalty_weight = 1e-4
+#arc_length_variation_penalty_weight = 0.0
 
 # coil params
-order = 12 # num fourier modes per coils
+order = 5 # num fourier modes per coils
 current = 1e5
 # surface definition
 vmec_input = '../../vmec_input_files/input.LandremanPaul2021_QA'
